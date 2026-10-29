@@ -1,0 +1,16 @@
+{
+  "_comment": "DEMO basins: Voronoi cells around these seeds clipped to the border. Replace with HydroBASINS via scripts/build_basins.py.",
+  "basins": [
+    {"id": "chui", "name": {"en": "Chui", "ru": "Чу", "ky": "Чүй"}, "lat": 42.75, "lon": 74.9},
+    {"id": "talas", "name": {"en": "Talas", "ru": "Талас", "ky": "Талас"}, "lat": 42.4, "lon": 72.0},
+    {"id": "issykkul", "name": {"en": "Issyk-Kul", "ru": "Иссык-Куль", "ky": "Ысык-Көл"}, "lat": 42.4, "lon": 77.4},
+    {"id": "naryn_upper", "name": {"en": "Upper Naryn", "ru": "Верхний Нарын", "ky": "Жогорку Нарын"}, "lat": 41.5, "lon": 75.6},
+    {"id": "naryn_lower", "name": {"en": "Lower Naryn / Toktogul", "ru": "Нижний Нарын / Токтогул", "ky": "Төмөнкү Нарын / Токтогул"}, "lat": 41.6, "lon": 73.2},
+    {"id": "karadarya", "name": {"en": "Kara-Darya", "ru": "Карадарья", "ky": "Кара-Дарыя"}, "lat": 40.6, "lon": 73.4},
+    {"id": "chatkal", "name": {"en": "Chatkal", "ru": "Чаткал", "ky": "Чаткал"}, "lat": 41.7, "lon": 71.4},
+    {"id": "alay", "name": {"en": "Kyzyl-Suu / Alay", "ru": "Кызыл-Суу / Алай", "ky": "Кызыл-Суу / Алай"}, "lat": 39.6, "lon": 72.8},
+    {"id": "sokh_isfara", "name": {"en": "Sokh / Isfara", "ru": "Сох / Исфара", "ky": "Сох / Исфара"}, "lat": 39.9, "lon": 70.8},
+    {"id": "saryjaz", "name": {"en": "Sary-Jaz", "ru": "Сары-Джаз", "ky": "Сары-Жаз"}, "lat": 41.9, "lon": 79.3},
+    {"id": "arpa_aksai", "name": {"en": "Ak-Sai / Arpa", "ru": "Ак-Сай / Арпа", "ky": "Ак-Сай / Арпа"}, "lat": 40.8, "lon": 75.2}
+  ]
+}

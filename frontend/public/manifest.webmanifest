@@ -1,0 +1,15 @@
+{
+  "name": "SuuPlan",
+  "short_name": "SuuPlan",
+  "description": "Crop rotation plans with mountain snow, soil and climate",
+  "start_url": "/plot",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F7FCF5",
+  "theme_color": "#006D2C",
+  "lang": "ky",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

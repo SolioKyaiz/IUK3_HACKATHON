@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.venv/
+__pycache__/
+*.db
+.env
+.DS_Store
+.pytest_cache/
+# internal documents and design sources, not part of the site
+*.pdf
+images.png
+.github/workflows/

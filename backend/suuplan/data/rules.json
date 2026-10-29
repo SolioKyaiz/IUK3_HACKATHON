@@ -1,0 +1,24 @@
+{
+  "_comment": "Engine parameters. Edit here, not in code. Weights order: water, soil, income, risk.",
+  "years": 3,
+  "weights": {
+    "water":  {"a": 0.5,  "b": 0.2,  "c": 0.1, "d": 0.2},
+    "income": {"a": 0.15, "b": 0.15, "c": 0.5, "d": 0.2},
+    "soil":   {"a": 0.2,  "b": 0.5,  "c": 0.1, "d": 0.2}
+  },
+  "snow_multiplier": {"low": 1.5, "normal": 1.0, "high": 0.75},
+  "snow_sources": ["river", "reservoir"],
+  "shortage_multiplier": {"enough": 1.0, "sometimes": 1.25, "often": 1.5, "rainfed": 1.5},
+  "effective_rain_share": 0.8,
+  "m3_per_mm_ha": 10,
+  "water_score_zero_at_mm": 800,
+  "ph_out_of_range_penalty": 15,
+  "after_legume_bonus": 5,
+  "ffd_margin_days": 20,
+  "heat_days_saturation": 30,
+  "risk_mix": {"water": 0.5, "heat": 0.3, "frost": 0.2},
+  "risk_shortage_factor": {"enough": 0.3, "sometimes": 0.6, "often": 1.0, "rainfed": 1.0},
+  "risk_snow_factor": {"low": 1.3, "normal": 1.0, "high": 0.8},
+  "plans_per_page": 3,
+  "min_years_different": 2
+}

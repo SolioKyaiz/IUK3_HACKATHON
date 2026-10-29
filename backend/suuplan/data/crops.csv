@@ -1,0 +1,11 @@
+id,family,legume,water_need_mm,min_ffd,soil_sandy,soil_medium,soil_clay,ph_min,ph_max,income_index,heat_sensitivity,drought_tolerance,soil_effect,once_per_plan,water_verified,source
+wheat,cereal,0,450,90,55,90,75,6.0,8.2,2,0.4,0.6,0.0,0,1,DEMO: FAO-56 typical values; replace with verified sources
+barley,cereal,0,400,80,65,85,70,6.0,8.5,2,0.3,0.7,0.0,0,1,DEMO: FAO-56 typical values; replace with verified sources
+maize,cereal,0,600,130,55,90,70,5.8,7.8,3,0.5,0.4,-0.3,0,1,DEMO: FAO-56 typical values; replace with verified sources
+potato,root,0,550,110,85,85,45,5.5,7.8,4,0.7,0.3,-0.4,1,1,DEMO: FAO-56 typical values; replace with verified sources
+beans,legume,1,450,100,60,90,60,6.0,8.0,5,0.6,0.4,0.6,0,1,DEMO: FAO-56 typical values; replace with verified sources
+sugar_beet,root,0,700,160,45,85,80,6.5,8.0,4,0.4,0.4,-0.5,1,1,DEMO: FAO-56 typical values; replace with verified sources
+sunflower,oilseed,0,500,120,60,85,70,6.0,8.0,3,0.2,0.7,-0.4,1,1,DEMO: FAO-56 typical values; replace with verified sources
+cotton,fiber,0,750,180,50,85,75,6.0,8.5,4,0.1,0.5,-0.5,1,1,DEMO: FAO-56 typical values; replace with verified sources
+alfalfa,legume,1,800,100,60,90,70,6.5,8.5,3,0.3,0.5,0.8,0,1,DEMO: FAO-56 typical values; replace with verified sources
+rice,cereal,0,1200,140,20,70,90,5.5,7.5,3,0.3,0.1,-0.2,0,0,no verified water data yet
