@@ -4,7 +4,7 @@ import { useSyncExternalStore } from "react";
 
 const KEY = "suuplan.state.v1";
 const PERSIST = ["lang", "token", "phone", "plots", "draft", "plotId", "answers", "priority", "plans",
-  "shown", "mapView", "panelCollapsed", "basemap", "snowLayer", "saved", "planView"];
+  "shown", "mapView", "panelCollapsed", "basemapMode", "snowLayer", "saved", "planView", "onboarded"];
 
 const initial = {
   lang: "ky",
@@ -19,10 +19,12 @@ const initial = {
   shown: [],          // plan keys already shown (for "other options")
   mapView: null,      // { center: [lat, lon], zoom }
   panelCollapsed: false,
-  basemap: "osm",
+  basemapMode: "auto",  // auto = map when zoomed out, satellite from SATELLITE_ZOOM
   snowLayer: false,
   saved: [],          // saved plans, also the offline copy
   planView: "stack",
+  onboarded: false,
+  onboardingOpen: false,
   loginOpen: false,
   loginThen: null,
   assistantOpen: false,

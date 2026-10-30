@@ -20,6 +20,15 @@ const ESRI_URL = ARCGIS_KEY
   : "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
 const ESRI_ATTR = "Powered by <a href=\"https://www.esri.com\">Esri</a> | Esri, Maxar, Earthstar Geographics";
 const OSM_ATTR = "© <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors";
+// Village and road names on top of the satellite, so farmers keep their bearings.
+const ESRI_LABELS_URL = "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}";
+// From this zoom fields are easier to recognise on the satellite than on the map.
+export const SATELLITE_ZOOM = 15;
+
+export function effectiveBasemap(mode, zoom) {
+  if (mode === "auto") return zoom >= SATELLITE_ZOOM ? "satellite" : "osm";
+  return mode;
+}
 
 export const SNOW_COLORS = { low: "#e8590c", normal: "#2f9e44", high: "#1c7ed6" };
 
@@ -34,7 +43,8 @@ export function basinAt(fc, lat, lon) {
 }
 
 export default function MapView() {
-  const { basemap, snowLayer, mapView, draft } = useStore((s) => s);
+  const { basemapMode, snowLayer, mapView, draft } = useStore((s) => s);
+  const basemap = effectiveBasemap(basemapMode, mapView?.zoom ?? 7);
   const initial = useRef(
     mapView ? { center: mapView.center, zoom: mapView.zoom }
       : draft?.geometry ? { bounds: bounds(draft.geometry) } : { bounds: KG_BOUNDS }
@@ -54,7 +64,10 @@ export default function MapView() {
       ref={(m) => { mapRef.current = m; }}
     >
       {basemap === "satellite"
-        ? <TileLayer key="esri" url={ESRI_URL} attribution={ESRI_ATTR} maxZoom={19} />
+        ? <>
+            <TileLayer key="esri" url={ESRI_URL} attribution={ESRI_ATTR} maxZoom={19} />
+            <TileLayer key="esri-labels" url={ESRI_LABELS_URL} maxZoom={19} />
+          </>
         : <TileLayer key="osm" url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" attribution={OSM_ATTR} maxZoom={19} />}
       {snowLayer && <SnowLayer />}
       <CountryMask />

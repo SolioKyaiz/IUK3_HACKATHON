@@ -8,6 +8,7 @@ import MapOverlay, { AssistantButton } from "./components/MapOverlay";
 import SearchBox from "./components/SearchBox";
 import Sheet, { SheetContext } from "./components/Sheet";
 import Assistant from "./components/Assistant";
+import Onboarding from "./components/Onboarding";
 import Icon from "./components/Icons";
 import { ConfirmDialog, LoginDialog, Toast } from "./components/Dialogs";
 import PlotStep from "./steps/PlotStep";
@@ -123,6 +124,7 @@ export default function App() {
       </main>
       <Assistant />
       <LoginDialog />
+      <Onboarding />
       <ConfirmDialog />
       <Toast />
     </div>

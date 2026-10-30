@@ -70,3 +70,12 @@ def test_water_volume_scales_with_area():
     a = scoring.make_plans(inp(), CTX)["plans"][0]
     b = scoring.make_plans(inp(), {**CTX, "area_ha": 4.0})["plans"][0]
     assert a["key"] == b["key"] and abs(b["water_m3_year"] - 2 * a["water_m3_year"]) <= 1
+
+
+def test_baseline_is_wheat_every_year():
+    r = scoring.make_plans(inp(), CTX)
+    rules = scoring.load_rules()
+    wheat = scoring.load_crops()["wheat"]
+    expected = round(scoring.irrigation_mm(wheat, CTX["rain"], rules) * 10 * CTX["area_ha"])
+    assert r["baseline"] == {"crop": "wheat", "water_m3_year": expected}
+    assert scoring.make_plans(inp(source="none"), CTX)["baseline"]["water_m3_year"] == 0

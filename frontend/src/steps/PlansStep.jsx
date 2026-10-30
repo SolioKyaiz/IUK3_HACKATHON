@@ -6,8 +6,39 @@ import Step from "../components/Step";
 import Icon from "../components/Icons";
 import { fetchPlans, savePlan } from "../lib/actions";
 import { letter, reasonText } from "../lib/share";
+import { cropEmoji, cropLabel } from "../lib/crops";
 
 const SWIPE_PX = 100;
+
+// Which plan on this page is best for water, income and soil (shown as badges).
+function bestBadges(page) {
+  const out = Object.fromEntries(page.map((p) => [p.key, []]));
+  if (page.length < 2) return out;
+  for (const k of ["water", "income", "soil"]) {
+    const best = page.reduce((a, b) => (b.scores[k] > a.scores[k] ? b : a));
+    out[best.key].push(k);
+  }
+  return out;
+}
+
+const waterLevel = (score) => (score >= 67 ? "low" : score >= 40 ? "mid" : "high");
+
+// 0–100 score as 1–5 dots and a word; for risk a high number is bad.
+function Rating({ k, value }) {
+  const t = useT();
+  const dots = Math.max(1, Math.min(5, Math.round(value / 20)));
+  const word = k === "risk"
+    ? t(value <= 33 ? "level.riskLow" : value <= 66 ? "level.riskMid" : "level.riskHigh")
+    : t(value >= 67 ? "level.good" : value >= 34 ? "level.mid" : "level.bad");
+  const tone = k === "risk" ? (value <= 33 ? "good" : value <= 66 ? "mid" : "bad") : (value >= 67 ? "good" : value >= 34 ? "mid" : "bad");
+  return (
+    <div className="score">
+      <span>{t(`plans.score.${k}`)}{k === "income" && <span className="muted tiny"> ({t("plans.approxPrices")})</span>}</span>
+      <span className={`dots ${tone}`} aria-hidden="true">{"●".repeat(dots)}<span className="off">{"●".repeat(5 - dots)}</span></span>
+      <span className={`word ${tone}`}>{word}</span>
+    </div>
+  );
+}
 
 export default function PlansStep() {
   const t = useT();
@@ -56,14 +87,19 @@ export default function PlansStep() {
   const ctx = plans.context;
   const snow = ctx.snow;
   const done = planView === "stack" ? index >= page.length : true;
+  const badges = bestBadges(page);
+  const cardProps = { source: plans.request.source, baseline: plans.baseline };
 
   return (
     <Step title={t("plans.title")} n={4} back="/priority">
       <div className={`snow-banner ${plans.snow_used ? snow?.label : "unused"}`}>
-        {plans.snow_used
-          ? <>{t(`snow.${snow?.label || "unknown"}`)} · {t("snow.date", { date: fmtDate(t.lang, snow?.date) })}</>
-          : t("snow.notUsed")}
-        {(snow?.demo || ctx.climate_source !== "NASA POWER") && <span className="pill demo">{t("app.demo")}</span>}
+        <p className="snow-plain">
+          {plans.snow_used && snow?.label ? t(`snow.plain.${snow.label}`) : plans.snow_used ? t("snow.unknown") : t("snow.plain.notUsed")}
+        </p>
+        <span className="muted small">
+          {plans.snow_used && <>{t("snow.date", { date: fmtDate(t.lang, snow?.date) })} · {t("snow.notForecast")} </>}
+          {(snow?.demo || ctx.climate_source !== "NASA POWER") && <span className="pill demo">{t("app.demo")}</span>}
+        </span>
       </div>
       <p className="muted small">{t("plans.climate", { ffd: ctx.ffd, rain: ctx.rain, heat: ctx.heat })}</p>
 
@@ -81,14 +117,14 @@ export default function PlansStep() {
         <div className="stack" data-no-sheet-drag>
           {page.map((p, i) => i >= index && (
             <PlanCard key={p.key} plan={p} label={letter(offset + i)} depth={i - index} top={i === index}
-              source={plans.request.source} onDecide={(keep) => decide(i, keep)} saved={savedKeys.has(p.key)} />
+              {...cardProps} badges={badges[p.key]} onDecide={(keep) => decide(i, keep)} saved={savedKeys.has(p.key)} />
           )).reverse()}
           {done && page.length > 0 && <div className="stack-done muted">{t("plans.done")}</div>}
         </div>
       ) : (
         <div className="plan-list">
           {page.map((p, i) => (
-            <PlanCard key={p.key} plan={p} label={letter(offset + i)} list source={plans.request.source}
+            <PlanCard key={p.key} plan={p} label={letter(offset + i)} list {...cardProps} badges={badges[p.key]}
               onDecide={(keep) => decide(i, keep)} saved={savedKeys.has(p.key)} />
           ))}
         </div>
@@ -118,7 +154,7 @@ export default function PlansStep() {
           <h3>{t("plans.notIncluded")}</h3>
           <ul>
             {plans.excluded.map((e) => (
-              <li key={e.crop}><strong>{t(`crop.${e.crop}`)}</strong> — {t(`excluded.${e.code}`, e.params)}</li>
+              <li key={e.crop}><strong>{cropLabel(t, e.crop)}</strong> — {t(`excluded.${e.code}`, e.params)}</li>
             ))}
           </ul>
         </div>
@@ -128,7 +164,26 @@ export default function PlansStep() {
   );
 }
 
-function PlanCard({ plan, label, depth = 0, top, list, source, onDecide, saved }) {
+function WaterLine({ plan, source, baseline }) {
+  const t = useT();
+  const level = waterLevel(plan.scores.water);
+  let vs = null;
+  if (source !== "none" && baseline?.water_m3_year > 0) {
+    const pct = Math.round((plan.water_m3_year / baseline.water_m3_year - 1) * 100);
+    const crop = t(`crop.${baseline.crop}`).toLowerCase();
+    vs = Math.abs(pct) < 5 ? t("plans.vsSame", { crop })
+      : t(pct < 0 ? "plans.vsLess" : "plans.vsMore", { pct: Math.abs(pct), crop });
+  }
+  return (
+    <div className="water-block">
+      <span className={`water-tag ${level}`}>💧 {t(`plans.waterLevel.${level}`)}</span>
+      <p className="water">{source === "none" ? t("plans.rainfed", { mm: plan.deficit_mm }) : t("plans.water", { m3: fmtNum(t.lang, plan.water_m3_year) })}</p>
+      {vs && <p className="vs muted small">{vs}</p>}
+    </div>
+  );
+}
+
+function PlanCard({ plan, label, depth = 0, top, list, source, baseline, badges = [], onDecide, saved }) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const [dx, setDx] = useState(0);
@@ -170,21 +225,18 @@ function PlanCard({ plan, label, depth = 0, top, list, source, onDecide, saved }
       aria-label={t("plans.plan", { letter: label })} aria-hidden={!list && !top}>
       {!list && dx !== 0 && <div className={`swipe-tag ${dx > 0 ? "yes" : "no"}`} style={{ opacity: Math.min(1, Math.abs(dx) / SWIPE_PX) }}>{dx > 0 ? t("plans.save") : t("plans.skip")}</div>}
       <h2>{t("plans.plan", { letter: label })} {saved && <span className="pill ok"><Icon name="check" size={14} /></span>}</h2>
+      {badges.length > 0 && <div className="badges">{badges.map((b) => <span key={b} className="badge">{t(`badge.${b}`)}</span>)}</div>}
       <ol className="years">
-        {plan.years.map((c, i) => <li key={i}><span className="muted">{t("plans.year", { n: i + 1 })}</span> <strong>{t(`crop.${c}`)}</strong></li>)}
+        {plan.years.map((c, i) => (
+          <li key={i}><span className="muted">{t("plans.year", { n: i + 1 })}</span> <span className="crop-emoji" aria-hidden="true">{cropEmoji(c)}</span> <strong>{t(`crop.${c}`)}</strong></li>
+        ))}
       </ol>
-      <p className="water">{source === "none" ? t("plans.rainfed", { mm: plan.deficit_mm }) : t("plans.water", { m3: fmtNum(t.lang, plan.water_m3_year) })}</p>
+      <WaterLine plan={plan} source={source} baseline={baseline} />
       <p className="why">{reasonText(t.lang, plan.reasons[0])}</p>
       <button className="link" aria-expanded={open} onClick={() => setOpen(!open)}>{open ? t("plans.hideDetails") : t("plans.details")}</button>
       {open && (
         <div className="details">
-          {["water", "soil", "income", "risk"].map((k) => (
-            <div key={k} className="score">
-              <span>{t(`plans.score.${k}`)}{k === "income" && <span className="muted tiny"> ({t("plans.approxPrices")})</span>}</span>
-              <span className="bar"><span className={k === "risk" ? "risk" : ""} style={{ width: `${plan.scores[k]}%` }} /></span>
-              <span className="num">{plan.scores[k]}</span>
-            </div>
-          ))}
+          {["water", "soil", "income", "risk"].map((k) => <Rating key={k} k={k} value={plan.scores[k]} />)}
           <ul className="reasons">{plan.reasons.map((r, i) => <li key={i}>{reasonText(t.lang, r)}</li>)}</ul>
         </div>
       )}

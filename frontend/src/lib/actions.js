@@ -1,7 +1,7 @@
 import { api } from "../api";
 import { getState, setState, toast } from "../store";
 import { translate } from "../i18n";
-import { toGeoJSON, fromGeoJSON } from "./geo";
+import { toGeoJSON, fromGeoJSON, squareAround, inKyrgyzstan } from "./geo";
 import { letter } from "./share";
 
 const t = (k, p) => translate(getState().lang, k, p);
@@ -32,6 +32,26 @@ export function selectPlot(plot) {
     plans: null,
     shown: [],
     fitRequest: getState().fitRequest + 1,
+  });
+}
+
+// "I'm on my field": a plot around the phone's position. Resolves to an error code or null.
+export function plotHere() {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) return resolve("map.locateError");
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        if (!inKyrgyzstan(coords.latitude, coords.longitude)) return resolve("map.outsideKg");
+        setState((s) => ({
+          plotId: null, answers: {}, priority: null, plans: null, shown: [],
+          draft: { geometry: squareAround(coords.latitude, coords.longitude), history: [], plotId: null },
+          fitRequest: s.fitRequest + 1,
+        }));
+        resolve(null);
+      },
+      (err) => resolve(err.code === err.PERMISSION_DENIED ? "plot.hereDenied" : "map.locateError"),
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 }
+    );
   });
 }
 

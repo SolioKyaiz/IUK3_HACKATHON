@@ -20,5 +20,6 @@
   "risk_shortage_factor": {"enough": 0.3, "sometimes": 0.6, "often": 1.0, "rainfed": 1.0},
   "risk_snow_factor": {"low": 1.3, "normal": 1.0, "high": 0.8},
   "plans_per_page": 3,
+  "baseline_crop": "wheat",
   "min_years_different": 2
 }

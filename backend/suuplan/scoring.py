@@ -244,5 +244,11 @@ def make_plans(inp, ctx):
         if single:
             excluded.append({"crop": cid, "code": f"weak_{weakest(single[0]['scores'])}", "params": {}})
 
+    # Reference for "X% less water than wheat every year" on the cards.
+    base_crop = load_crops()[rules.get("baseline_crop", "wheat")]
+    base_mm = irrigation_mm(base_crop, ctx["rain"], rules)
+    baseline = {"crop": base_crop.id, "water_m3_year": round(base_mm * rules["m3_per_mm_ha"] * ctx["area_ha"])
+                if inp["source"] != "none" else 0}
+
     return {"plans": picked, "excluded": excluded, "has_more": len(scored) > len(shown_keys) + len(picked),
-            "snow_used": snow_applies(inp["source"], rules)}
+            "snow_used": snow_applies(inp["source"], rules), "baseline": baseline}

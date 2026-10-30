@@ -6,17 +6,27 @@ import { useT } from "../i18n";
 import Step from "../components/Step";
 import Icon from "../components/Icons";
 import { saveAnswers } from "../lib/actions";
+import { cropEmoji } from "../lib/crops";
 
 export const CROPS = ["wheat", "barley", "maize", "potato", "beans", "sugar_beet", "sunflower", "cotton", "alfalfa", "rice"];
 
-function Choice({ legend, options, value, onChange, cols = 2 }) {
+function Choice({ legend, help, options, value, onChange, cols = 2 }) {
+  const t = useT();
+  const [open, setOpen] = useState(false);
   return (
     <fieldset className="choice">
-      <legend>{legend}</legend>
+      <legend className="choice-legend">
+        <span>{legend}</span>
+        {help && (
+          <button type="button" className={`help-btn ${open ? "on" : ""}`} aria-expanded={open}
+            aria-label={`${t("help.show")}: ${legend}`} title={t("help.show")} onClick={() => setOpen(!open)}>?</button>
+        )}
+      </legend>
+      {help && open && <p className="help-box">{help}</p>}
       <div className={`choice-grid cols-${cols}`}>
         {options.map(([v, label]) => (
           <button key={v} type="button" className={`choice-btn ${value === v ? "on" : ""}`} aria-pressed={value === v} onClick={() => onChange(v)}>
-            {value === v && <Icon name="check" size={18} />} {label}
+            {value === v && <Icon name="check" size={18} />}{label}
           </button>
         ))}
       </div>
@@ -62,15 +72,16 @@ export default function FieldStep() {
         <button className="btn primary" disabled={!complete || busy} onClick={next}>{t("step.next")} <Icon name="chevronRight" size={18} /></button>
       </>
     }>
-      <Choice legend={t("field.prev")} value={a.prev} onChange={set("prev")}
-        options={[...CROPS.map((c) => [c, t(`crop.${c}`)]), ["none", t("field.none")]]} />
-      <Choice legend={t("field.source")} value={a.source} onChange={set("source")}
+      <Choice legend={t("field.prev")} help={t("help.prev")} value={a.prev} onChange={set("prev")}
+        options={[...CROPS.map((c) => [c, <><span className="ce" aria-hidden="true">{cropEmoji(c)}</span><span>{t(`crop.${c}`)}</span></>]),
+          ["none", <><span className="ce" aria-hidden="true">{cropEmoji("none")}</span><span>{t("field.none")}</span></>]]} />
+      <Choice legend={t("field.source")} help={t("help.source")} value={a.source} onChange={set("source")}
         options={["river", "well", "reservoir", "none"].map((s) => [s, t(`source.${s}`)])} />
       {a.source !== "none" && (
-        <Choice legend={t("field.water")} value={a.water} onChange={set("water")} cols={1}
+        <Choice legend={t("field.water")} help={t("help.water")} value={a.water} onChange={set("water")} cols={1}
           options={["enough", "sometimes", "often"].map((w) => [w, t(`water.${w}`)])} />
       )}
-      <Choice legend={t("field.soil")} value={a.soil} onChange={set("soil")}
+      <Choice legend={t("field.soil")} help={t("help.soil")} value={a.soil} onChange={set("soil")}
         options={["sandy", "medium", "clay", "unknown"].map((s) => [s, t(`soil.${s}`)])} />
       {a.soil === "unknown" && (
         <p className="hint" aria-live="polite">

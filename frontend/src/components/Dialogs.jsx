@@ -10,7 +10,8 @@ export function Modal({ label, onClose, children, className = "" }) {
   const ref = useRef(null);
   useEffect(() => {
     const prev = document.activeElement;
-    ref.current?.querySelector("input, button:not(.close)")?.focus();
+    const el = ref.current;
+    (el?.querySelector("input") || el?.querySelector(".btn.primary") || el?.querySelector("button:not(.close)"))?.focus();
     const key = (e) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", key);
     return () => { document.removeEventListener("keydown", key); prev?.focus?.(); };

@@ -8,6 +8,7 @@ import { confirmThen, deleteSaved, refreshSaved } from "../lib/actions";
 import { planText, telegramUrl, whatsappUrl } from "../lib/share";
 import { fromGeoJSON } from "../lib/geo";
 import { InstallButton } from "../components/Install";
+import { cropLabel } from "../lib/crops";
 
 export default function SavedStep() {
   const t = useT();
@@ -82,7 +83,7 @@ function SavedCard({ row, onFocus }) {
         </div>
         <div className="muted small">{t("saved.plot", { name: inputs.plotName, area: fmtNum(t.lang, inputs.area_ha || 0, 2) })}</div>
         <ol className="years compact">
-          {plan.years.map((c, i) => <li key={i}>{i + 1}. {t(`crop.${c}`)}</li>)}
+          {plan.years.map((c, i) => <li key={i}>{i + 1}. {cropLabel(t, c)}</li>)}
         </ol>
         <div className="small">{inputs.source === "none" ? t("plans.rainfed", { mm: plan.deficit_mm }) : t("plans.water", { m3: fmtNum(t.lang, plan.water_m3_year) })}</div>
       </button>

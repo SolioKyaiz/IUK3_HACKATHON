@@ -5,7 +5,7 @@ import { useT, fmtNum } from "../i18n";
 import Step from "../components/Step";
 import Icon from "../components/Icons";
 import { areaHa, loadBorder, validate } from "../lib/geo";
-import { confirmThen, deletePlot, newPlot, renamePlot, requireLogin, saveDraft, selectPlot } from "../lib/actions";
+import { confirmThen, deletePlot, newPlot, plotHere, renamePlot, requireLogin, saveDraft, selectPlot } from "../lib/actions";
 
 export default function PlotStep() {
   const t = useT();
@@ -14,6 +14,7 @@ export default function PlotStep() {
   const [kg, setKg] = useState(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(null);
+  const [here, setHere] = useState(null); // null | "busy" | i18n key of an error
   useEffect(() => { loadBorder().then(setKg).catch(() => {}); }, []);
 
   const geom = liveGeometry || draft?.geometry;
@@ -74,6 +75,13 @@ export default function PlotStep() {
       {draft && !draft.plotId && (
         <div className="plot-item on new"><span>{t("plot.ha", { value: fmtNum(t.lang, area, 2) })}</span><span className="muted small">{t("plot.unsaved")}</span></div>
       )}
+      <button className="btn here block" disabled={here === "busy"} onClick={async () => {
+        setHere("busy");
+        setHere(await plotHere());
+      }}>
+        📍 {here === "busy" ? t("plot.hereBusy") : t("plot.here")}
+      </button>
+      {here && here !== "busy" ? <p className="error" role="alert">{t(here)}</p> : !draft && <p className="hint">{t("plot.hereHint")}</p>}
       <div className="row">
         <button className="btn ghost" onClick={newPlot}>{t("plot.new")}</button>
         {draft?.history?.length > 0 && <button className="btn ghost" onClick={undo}><Icon name="undo" size={18} /> {t("plot.undo")}</button>}

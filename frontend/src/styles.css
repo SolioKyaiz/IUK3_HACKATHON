@@ -331,3 +331,44 @@ p { margin: 0.4em 0; }
 .mode-mobile .toast { bottom: calc(var(--sheet-h) + 16px); }
 .offline { position: absolute; top: 72px; left: 50%; transform: translateX(-50%); background: #16191d; color: #fff; padding: 6px 14px; border-radius: 16px; font-size: 14px; z-index: 1001; }
 .mode-mobile .offline { top: calc(116px + var(--safe-top)); }
+.btn.here { background: var(--primary-soft); border-color: var(--primary); color: var(--text); margin: 4px 0; font-size: 17px; min-height: 52px; }
+.choice-legend { display: flex; align-items: center; gap: 8px; width: 100%; }
+.choice legend.choice-legend { margin-bottom: 8px; }
+.help-btn { flex: none; width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--primary); background: var(--surface); color: var(--primary); font-weight: 800; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; position: relative; }
+.help-btn::after { content: ""; position: absolute; inset: -6px; } /* 44 px touch target */
+.help-btn.on { background: var(--primary); color: var(--primary-ink); }
+.help-box { background: var(--primary-soft); border-radius: 10px; padding: 10px 12px; font-size: 15px; margin: 0 0 10px; }
+
+/* plan cards: water, ratings, badges */
+.badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.badge { background: var(--primary-soft); color: var(--text); border-radius: 99px; padding: 3px 10px; font-size: 13px; font-weight: 700; }
+.crop-emoji { font-size: 20px; line-height: 1; }
+.water-block { margin: 8px 0 4px; }
+.water-tag { display: inline-block; border-radius: 8px; padding: 2px 10px; font-size: 14px; font-weight: 700; }
+.water-tag.low { background: var(--ok-soft); color: var(--ok); }
+.water-tag.mid { background: var(--warn-soft); color: var(--warn); }
+.water-tag.high { background: var(--danger-soft); color: var(--danger); }
+.water-block .water { margin: 4px 0 0; }
+.water-block .vs { margin: 2px 0 0; }
+.score { grid-template-columns: 7.5em auto 1fr; }
+.dots { letter-spacing: 2px; font-size: 14px; }
+.dots .off { color: var(--line); }
+.dots.good, .word.good { color: var(--ok); }
+.dots.mid, .word.mid { color: var(--warn); }
+.dots.bad, .word.bad { color: var(--danger); }
+.word { font-weight: 700; font-size: 14px; }
+.snow-banner { flex-direction: column; align-items: flex-start; gap: 4px; }
+.snow-plain { margin: 0; font-size: 15px; }
+/* onboarding */
+.dialog.onboarding { text-align: center; gap: 12px; }
+.onb-top { display: flex; justify-content: flex-end; }
+.onb-art { font-size: 56px; line-height: 1.2; padding: 12px 0; letter-spacing: 6px; }
+.onb-title { font-size: 22px; }
+.onb-text { font-size: 17px; color: var(--muted); min-height: 4.5em; }
+.onb-dots { display: flex; justify-content: center; gap: 4px; }
+.onb-dots button { width: 28px; height: 28px; border: 0; background: none; padding: 0; display: flex; align-items: center; justify-content: center; }
+.onb-dots button::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+.onb-dots button.on::before { background: var(--primary); width: 22px; border-radius: 5px; }
+.onb-nav { margin-top: 4px; }
+.mode-mobile .dialog.onboarding { width: 100%; border-radius: 18px 18px 0 0; padding-bottom: calc(20px + var(--safe-bottom)); }
+.choice-btn .ce { flex: none; font-size: 20px; line-height: 1; }

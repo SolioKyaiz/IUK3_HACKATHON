@@ -123,7 +123,7 @@ function SnowChip({ mobile }) {
 
 function MapButtons({ mobile }) {
   const t = useT();
-  const { basemap, snowLayer } = useStore((s) => s);
+  const { basemapMode, snowLayer } = useStore((s) => s);
   const [layersOpen, setLayersOpen] = useState(false);
   const [locating, setLocating] = useState(false);
   const ref = useRef(null);
@@ -159,8 +159,9 @@ function MapButtons({ mobile }) {
         {layersOpen && (
           <div className="layers-pop" role="dialog" aria-label={t("map.layers")}>
             <div className="muted small">{t("map.base")}</div>
-            <label><input type="radio" name="base" checked={basemap === "osm"} onChange={() => setState({ basemap: "osm" })} /> {t("map.osm")}</label>
-            <label><input type="radio" name="base" checked={basemap === "satellite"} onChange={() => setState({ basemap: "satellite" })} /> {t("map.satellite")}</label>
+            {[["auto", "map.auto"], ["osm", "map.osm"], ["satellite", "map.satellite"]].map(([v, key]) => (
+              <label key={v}><input type="radio" name="base" checked={basemapMode === v} onChange={() => setState({ basemapMode: v })} /> {t(key)}</label>
+            ))}
             <hr />
             <label><input type="checkbox" checked={snowLayer} onChange={(e) => setState({ snowLayer: e.target.checked })} /> {t("map.snowLayer")}</label>
             {snowLayer && <SnowLegend />}
