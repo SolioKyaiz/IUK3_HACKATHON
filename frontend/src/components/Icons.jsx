@@ -28,6 +28,9 @@ const P = {
   search: "M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM21 21l-5-5",
   snow: "M12 2v20M4 6l16 12M20 6 4 18",
   download: "M12 3v12M7 10l5 5 5-5M5 20h14",
+  pin: "M12 22s7-6.3 7-12a7 7 0 0 0-14 0c0 5.7 7 12 7 12zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z",
+  help: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01",
+  home: "M3 11l9-7 9 7M5 9.5V20h14V9.5M10 20v-5h4v5",
 };
 
 // Brand marks for the share buttons, drawn in each service's own colours.

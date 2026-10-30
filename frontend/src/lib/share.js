@@ -1,5 +1,4 @@
 import { translate, fmtNum, fmtDate } from "../i18n";
-import { cropEmoji } from "./crops";
 
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 export const letter = (i) => LETTERS[i % 26];
@@ -16,7 +15,7 @@ export function planText(lang, saved) {
   const { plan, inputs } = saved;
   const lines = [t("share.header", { plan: inputs.planLabel || t("plans.plan", { letter: "A" }) })];
   lines.push(t("share.plot", { name: inputs.plotName, area: fmtNum(lang, inputs.area_ha, 2) }));
-  plan.years.forEach((c, i) => lines.push(`${t("plans.year", { n: i + 1 })}: ${cropEmoji(c)} ${t(`crop.${c}`)}`));
+  plan.years.forEach((c, i) => lines.push(`${t("plans.year", { n: i + 1 })}: ${t(`crop.${c}`)}`));
   if (inputs.source !== "none") lines.push(t("share.water", { m3: fmtNum(lang, plan.water_m3_year) }));
   const snow = inputs.snowUsed && inputs.snow?.label
     ? t("share.snow", { label: t(`snow.label.${inputs.snow.label}`), date: fmtDate(lang, inputs.snow.date) })

@@ -6,7 +6,7 @@ import { useT } from "../i18n";
 import Step from "../components/Step";
 import Icon from "../components/Icons";
 import { saveAnswers } from "../lib/actions";
-import { cropEmoji } from "../lib/crops";
+import CropIcon from "../components/CropIcon";
 
 export const CROPS = ["wheat", "barley", "maize", "potato", "beans", "sugar_beet", "sunflower", "cotton", "alfalfa", "rice"];
 
@@ -73,8 +73,8 @@ export default function FieldStep() {
       </>
     }>
       <Choice legend={t("field.prev")} help={t("help.prev")} value={a.prev} onChange={set("prev")}
-        options={[...CROPS.map((c) => [c, <><span className="ce" aria-hidden="true">{cropEmoji(c)}</span><span>{t(`crop.${c}`)}</span></>]),
-          ["none", <><span className="ce" aria-hidden="true">{cropEmoji("none")}</span><span>{t("field.none")}</span></>]]} />
+        options={[...CROPS.map((c) => [c, <><CropIcon id={c} size={30} className="ce" /><span>{t(`crop.${c}`)}</span></>]),
+          ["none", <><CropIcon id="none" size={30} className="ce" /><span>{t("field.none")}</span></>]]} />
       <Choice legend={t("field.source")} help={t("help.source")} value={a.source} onChange={set("source")}
         options={["river", "well", "reservoir", "none"].map((s) => [s, t(`source.${s}`)])} />
       {a.source !== "none" && (

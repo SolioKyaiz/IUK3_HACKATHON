@@ -6,7 +6,7 @@ import Step from "../components/Step";
 import Icon from "../components/Icons";
 import { fetchPlans, savePlan } from "../lib/actions";
 import { letter, reasonText } from "../lib/share";
-import { cropEmoji, cropLabel } from "../lib/crops";
+import CropIcon from "../components/CropIcon";
 
 const SWIPE_PX = 100;
 
@@ -20,6 +20,8 @@ function bestBadges(page) {
   }
   return out;
 }
+
+const BADGE_ICON = { water: "drop", income: "coin", soil: "sprout" };
 
 const waterLevel = (score) => (score >= 67 ? "low" : score >= 40 ? "mid" : "high");
 
@@ -154,7 +156,7 @@ export default function PlansStep() {
           <h3>{t("plans.notIncluded")}</h3>
           <ul>
             {plans.excluded.map((e) => (
-              <li key={e.crop}><strong>{cropLabel(t, e.crop)}</strong> — {t(`excluded.${e.code}`, e.params)}</li>
+              <li key={e.crop}><CropIcon id={e.crop} size={20} /> <strong>{t(`crop.${e.crop}`)}</strong> — {t(`excluded.${e.code}`, e.params)}</li>
             ))}
           </ul>
         </div>
@@ -176,7 +178,7 @@ function WaterLine({ plan, source, baseline }) {
   }
   return (
     <div className="water-block">
-      <span className={`water-tag ${level}`}>💧 {t(`plans.waterLevel.${level}`)}</span>
+      <span className={`water-tag ${level}`}><Icon name="drop" size={15} /> {t(`plans.waterLevel.${level}`)}</span>
       <p className="water">{source === "none" ? t("plans.rainfed", { mm: plan.deficit_mm }) : t("plans.water", { m3: fmtNum(t.lang, plan.water_m3_year) })}</p>
       {vs && <p className="vs muted small">{vs}</p>}
     </div>
@@ -225,10 +227,14 @@ function PlanCard({ plan, label, depth = 0, top, list, source, baseline, badges 
       aria-label={t("plans.plan", { letter: label })} aria-hidden={!list && !top}>
       {!list && dx !== 0 && <div className={`swipe-tag ${dx > 0 ? "yes" : "no"}`} style={{ opacity: Math.min(1, Math.abs(dx) / SWIPE_PX) }}>{dx > 0 ? t("plans.save") : t("plans.skip")}</div>}
       <h2>{t("plans.plan", { letter: label })} {saved && <span className="pill ok"><Icon name="check" size={14} /></span>}</h2>
-      {badges.length > 0 && <div className="badges">{badges.map((b) => <span key={b} className="badge">{t(`badge.${b}`)}</span>)}</div>}
-      <ol className="years">
+      {badges.length > 0 && <div className="badges">{badges.map((b) => <span key={b} className={`badge badge-${b}`}><Icon name={BADGE_ICON[b]} size={15} /> {t(`badge.${b}`)}</span>)}</div>}
+      <ol className="year-tiles">
         {plan.years.map((c, i) => (
-          <li key={i}><span className="muted">{t("plans.year", { n: i + 1 })}</span> <span className="crop-emoji" aria-hidden="true">{cropEmoji(c)}</span> <strong>{t(`crop.${c}`)}</strong></li>
+          <li key={i}>
+            <span className="yr">{t("plans.year", { n: i + 1 })}</span>
+            <CropIcon id={c} size={44} className="big" />
+            <strong>{t(`crop.${c}`)}</strong>
+          </li>
         ))}
       </ol>
       <WaterLine plan={plan} source={source} baseline={baseline} />

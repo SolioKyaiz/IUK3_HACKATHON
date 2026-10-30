@@ -10,6 +10,7 @@
     "check:i18n": "node scripts/check-i18n.mjs"
   },
   "dependencies": {
+    "@fontsource/nunito": "^5.3.0",
     "@turf/area": "^7.1.0",
     "@turf/boolean-point-in-polygon": "^7.1.0",
     "@turf/kinks": "^7.1.0",

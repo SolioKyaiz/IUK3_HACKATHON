@@ -79,7 +79,7 @@ export default function PlotStep() {
         setHere("busy");
         setHere(await plotHere());
       }}>
-        📍 {here === "busy" ? t("plot.hereBusy") : t("plot.here")}
+        <Icon name="pin" size={20} /> {here === "busy" ? t("plot.hereBusy") : t("plot.here")}
       </button>
       {here && here !== "busy" ? <p className="error" role="alert">{t(here)}</p> : !draft && <p className="hint">{t("plot.hereHint")}</p>}
       <div className="row">
