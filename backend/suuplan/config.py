@@ -4,6 +4,11 @@ from pathlib import Path
 DATA_DIR = Path(__file__).parent / "data"
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./suuplan.db")
+# Render/Neon give "postgres://" or "postgresql://"; SQLAlchemy 2.1 would pick psycopg 3 for those,
+# but we ship psycopg2.
+for prefix in ("postgres://", "postgresql://"):
+    if DATABASE_URL.startswith(prefix):
+        DATABASE_URL = "postgresql+psycopg2://" + DATABASE_URL[len(prefix):]
 JWT_SECRET = os.getenv("JWT_SECRET", "dev-secret-change-me-in-production-please")
 JWT_DAYS = 30
 DEMO_OTP_CODE = "1234"
