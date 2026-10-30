@@ -277,5 +277,9 @@
   "data.name.crops": "Crop values",
   "data.status.live": "Real data",
   "data.status.approx": "Approximate",
-  "data.status.reference": "Reference"
+  "data.status.reference": "Reference",
+  "assistant.welcome": "Hello! I explain how SuuPlan works. Pick a question below or type your own.",
+  "assistant.noMatch": "I couldn't find a ready answer to that. Pick one of the questions above or ask in other words.",
+  "assistant.typing": "Typing…",
+  "assistant.slow": "The server is not answering, so I'm showing a ready answer."
 }
