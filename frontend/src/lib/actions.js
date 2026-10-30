@@ -94,7 +94,7 @@ export async function fetchPlans({ more = false } = {}) {
 }
 
 export async function savePlan(plan, index) {
-  const { plans, plots, plotId, saved } = getState();
+  const { plans, plots, plotId } = getState();
   const plot = plots.find((p) => p.id === plotId);
   const ctx = plans.context;
   const inputs = {
@@ -107,7 +107,7 @@ export async function savePlan(plan, index) {
     demo: Boolean(ctx.snow?.demo || ctx.basin?.source === "demo" || ctx.climate_source !== "NASA POWER"),
   };
   const row = await api("/saved-plans", { method: "POST", body: { plot_id: plotId, plan, inputs } });
-  setState({ saved: [row, ...saved] });
+  setState((s) => ({ saved: [row, ...s.saved] }));
   toast(t("plans.savedToast"));
 }
 

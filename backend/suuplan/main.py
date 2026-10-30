@@ -55,6 +55,12 @@ async def validation_handler(request, exc):
 _hits: dict[str, deque] = defaultdict(deque)
 
 
+def client_ip(request: Request):
+    """Visitor IP behind Render's proxy (first X-Forwarded-For entry), else the socket address."""
+    fwd = request.headers.get("x-forwarded-for", "")
+    return fwd.split(",")[0].strip() or (request.client.host if request.client else "unknown")
+
+
 def rate_limit(key, limit, window_s):
     now = time.monotonic()
     q = _hits[key]
@@ -98,7 +104,7 @@ def current_user(authorization: str | None = Header(default=None)):
 
 @app.post("/auth/otp")
 def auth_otp(body: OtpIn, request: Request):
-    rate_limit(f"otp:{request.client.host}", 10, 60)
+    rate_limit(f"otp:{client_ip(request)}", 10, 60)
     if not PHONE_RE.match(body.phone):
         raise ApiError(400, "phone_invalid")
     return {"sent": True}  # MVP: no SMS, the code is always 1234
@@ -106,7 +112,7 @@ def auth_otp(body: OtpIn, request: Request):
 
 @app.post("/auth/verify")
 def auth_verify(body: VerifyIn, request: Request, db: Session = Depends(get_db)):
-    rate_limit(f"verify:{request.client.host}", 10, 60)
+    rate_limit(f"verify:{client_ip(request)}", 10, 60)
     if not PHONE_RE.match(body.phone):
         raise ApiError(400, "phone_invalid")
     if body.code != DEMO_OTP_CODE:
@@ -334,7 +340,7 @@ def assistant_chat(body: ChatIn, request: Request, authorization: str | None = H
         raise ApiError(400, "bad_request")
     if len(str(body.messages[-1].get("content", ""))) > ASSISTANT_MAX_CHARS:
         raise ApiError(400, "question_too_long")
-    who = user_id_from(authorization) or request.client.host
+    who = user_id_from(authorization) or client_ip(request)
     rate_limit(f"chat:{who}:{date.today()}", ASSISTANT_DAILY_LIMIT, 86400)
     if not assistant.available() and not assistant.SOW_PATTERN.search(str(body.messages[-1].get("content", ""))):
         raise ApiError(503, "assistant_unavailable")

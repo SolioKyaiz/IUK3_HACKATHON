@@ -22,15 +22,16 @@ export default function PlansStep() {
 
   useEffect(() => { setIndex(0); }, [plans]);
 
-  const decide = async (i, keep) => {
-    if (keep && !savedKeys.has(page[i].key)) {
-      setSavedKeys((s) => new Set(s).add(page[i].key));
-      try { await savePlan(page[i], offset + i); } catch (e) {
-        setErr(e.code);
-        setSavedKeys((s) => { const n = new Set(s); n.delete(page[i].key); return n; });
-      }
-    }
+  // Move to the next card right away; saving runs in the background so a slow network
+  // never applies a tap to the wrong card.
+  const decide = (i, keep) => {
     if (planView === "stack") setIndex((x) => Math.max(x, i + 1));
+    if (!keep || savedKeys.has(page[i].key)) return;
+    setSavedKeys((s) => new Set(s).add(page[i].key));
+    savePlan(page[i], offset + i).catch((e) => {
+      setErr(e.code);
+      setSavedKeys((s) => { const n = new Set(s); n.delete(page[i].key); return n; });
+    });
   };
 
   useEffect(() => {
