@@ -45,7 +45,7 @@ function Rating({ k, value }) {
 export default function PlansStep() {
   const t = useT();
   const nav = useNavigate();
-  const { plans, saved, planView } = useStore((s) => s);
+  const { plans, saved, planView, plots, plotId, priority } = useStore((s) => s);
   const [index, setIndex] = useState(0);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState(null);
@@ -91,19 +91,35 @@ export default function PlansStep() {
   const done = planView === "stack" ? index >= page.length : true;
   const badges = bestBadges(page);
   const cardProps = { source: plans.request.source, baseline: plans.baseline };
+  const plot = plots.find((p) => p.id === plotId);
+  const isDemo = snow?.demo || ctx.climate_source !== "NASA POWER";
+  const srcText = (s) => (s === "farmer" ? t("plans.src.farmer") : s === "fallback" ? t("plans.src.estimate") : s);
 
   return (
     <Step title={t("plans.title")} n={4} back="/priority">
-      <div className={`snow-banner ${plans.snow_used ? snow?.label : "unused"}`}>
-        <p className="snow-plain">
-          {plans.snow_used && snow?.label ? t(`snow.plain.${snow.label}`) : plans.snow_used ? t("snow.unknown") : t("snow.plain.notUsed")}
-        </p>
-        <span className="muted small">
-          {plans.snow_used && <>{t("snow.date", { date: fmtDate(t.lang, snow?.date) })} · {t("snow.notForecast")} </>}
-          {(snow?.demo || ctx.climate_source !== "NASA POWER") && <span className="pill demo">{t("app.demo")}</span>}
-        </span>
+      <div className="plans-summary">
+        <div className="plans-summary-plot">
+          <Icon name="field" size={18} />
+          <span>{t("share.plot", { name: plot?.name ?? "—", area: fmtNum(t.lang, ctx.area_ha, 2) })}</span>
+        </div>
+        {priority && (
+          <span className="chip-static"><Icon name={BADGE_ICON[priority]} size={15} /> {t(`priority.${priority}`)}</span>
+        )}
       </div>
-      <p className="muted small">{t("plans.climate", { ffd: ctx.ffd, rain: ctx.rain, heat: ctx.heat })}</p>
+
+      <div className={`notice-card snow ${plans.snow_used ? snow?.label || "unknown" : "unused"}`}>
+        <Icon name="snow" size={20} />
+        <div>
+          <p className="notice-title">
+            {plans.snow_used && snow?.label ? t(`snow.plain.${snow.label}`) : plans.snow_used ? t("snow.unknown") : t("snow.plain.notUsed")}
+          </p>
+          <p className="notice-meta">
+            {plans.snow_used && <>{t("snow.date", { date: fmtDate(t.lang, snow?.date) })} · {t("snow.notForecast")} </>}
+            {isDemo && <span className="pill demo">{t("app.demo")}</span>}
+          </p>
+        </div>
+      </div>
+      <p className="facts">{t("plans.climate", { ffd: ctx.ffd, rain: ctx.rain, heat: ctx.heat })}</p>
 
       <div className="row between">
         <div className="seg small" role="group">
@@ -161,7 +177,15 @@ export default function PlansStep() {
           </ul>
         </div>
       )}
-      <p className="muted small">{t("app.hint")}</p>
+      <details className="disclosure">
+        <summary>{t("plans.sourcesTitle")}</summary>
+        <ul>
+          <li>{t("plans.src.climate", { src: srcText(ctx.climate_source) })}</li>
+          <li>{t("plans.src.soil", { src: srcText(ctx.soil?.source) })}</li>
+          <li>{t("plans.src.snow", { src: !plans.snow_used ? t("plans.src.notUsed") : snow?.demo ? t("app.demo") : "MODIS MOD10A1" })}</li>
+        </ul>
+      </details>
+      <p className="hint">{t("app.hint")}</p>
     </Step>
   );
 }
@@ -226,7 +250,13 @@ function PlanCard({ plan, label, depth = 0, top, list, source, baseline, badges 
       onPointerDown={down} onPointerMove={moveP} onPointerUp={up} onPointerCancel={up}
       aria-label={t("plans.plan", { letter: label })} aria-hidden={!list && !top}>
       {!list && dx !== 0 && <div className={`swipe-tag ${dx > 0 ? "yes" : "no"}`} style={{ opacity: Math.min(1, Math.abs(dx) / SWIPE_PX) }}>{dx > 0 ? t("plans.save") : t("plans.skip")}</div>}
-      <h2>{t("plans.plan", { letter: label })} {saved && <span className="pill ok"><Icon name="check" size={14} /></span>}</h2>
+      <div className="plan-head">
+        <h2>{t("plans.plan", { letter: label })} {saved && <span className="pill ok"><Icon name="check" size={14} /></span>}</h2>
+        <div className="fit" title={t("plans.fit")}>
+          <span className="fit-num"><span className="fit-value">{Math.round(plan.total)}</span><span className="fit-max">/100</span></span>
+          <span className="fit-label">{t("plans.fit")}</span>
+        </div>
+      </div>
       {badges.length > 0 && <div className="badges">{badges.map((b) => <span key={b} className={`badge badge-${b}`}><Icon name={BADGE_ICON[b]} size={15} /> {t(`badge.${b}`)}</span>)}</div>}
       <ol className="year-tiles">
         {plan.years.map((c, i) => (
@@ -242,7 +272,9 @@ function PlanCard({ plan, label, depth = 0, top, list, source, baseline, badges 
       <button className="link" aria-expanded={open} onClick={() => setOpen(!open)}>{open ? t("plans.hideDetails") : t("plans.details")}</button>
       {open && (
         <div className="details">
-          {["water", "soil", "income", "risk"].map((k) => <Rating key={k} k={k} value={plan.scores[k]} />)}
+          <h3 className="details-title">{t("plans.scoresTitle")}</h3>
+          <div className="ratings">{["water", "soil", "income", "risk"].map((k) => <Rating key={k} k={k} value={plan.scores[k]} />)}</div>
+          <h3 className="details-title">{t("plans.whyTitle")}</h3>
           <ul className="reasons">{plan.reasons.map((r, i) => <li key={i}>{reasonText(t.lang, r)}</li>)}</ul>
         </div>
       )}

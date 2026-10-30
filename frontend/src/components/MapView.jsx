@@ -107,7 +107,7 @@ function CountryMask() {
     <>
       <Polygon positions={[world, ...holes]} interactive={false} pathOptions={{ stroke: false, fillOpacity: 0.88, className: "kg-mask" }} />
       {holes.map((ring, i) => (
-        <Polygon key={i} positions={ring} interactive={false} pathOptions={{ color: "#238B45", weight: 2.5, opacity: 0.85, fill: false }} />
+        <Polygon key={i} positions={ring} interactive={false} pathOptions={{ color: "#0B7A3E", weight: 2.5, opacity: 0.85, fill: false }} />
       ))}
     </>
   );

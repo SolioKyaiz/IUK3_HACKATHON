@@ -10,11 +10,11 @@ import CropIcon from "../components/CropIcon";
 
 export const CROPS = ["wheat", "barley", "maize", "potato", "beans", "sugar_beet", "sunflower", "cotton", "alfalfa", "rice"];
 
-function Choice({ legend, help, options, value, onChange, cols = 2 }) {
+function Choice({ legend, help, options, value, onChange, cols = 2, tiles = false }) {
   const t = useT();
   const [open, setOpen] = useState(false);
   return (
-    <fieldset className="choice">
+    <fieldset className="choice q-card">
       <legend className="choice-legend">
         <span>{legend}</span>
         {help && (
@@ -23,10 +23,10 @@ function Choice({ legend, help, options, value, onChange, cols = 2 }) {
         )}
       </legend>
       {help && open && <p className="help-box">{help}</p>}
-      <div className={`choice-grid cols-${cols}`}>
+      <div className={`choice-grid cols-${cols} ${tiles ? "tiles" : ""}`}>
         {options.map(([v, label]) => (
           <button key={v} type="button" className={`choice-btn ${value === v ? "on" : ""}`} aria-pressed={value === v} onClick={() => onChange(v)}>
-            {value === v && <Icon name="check" size={18} />}{label}
+            <span className="radio" aria-hidden="true" />{label}
           </button>
         ))}
       </div>
@@ -72,9 +72,9 @@ export default function FieldStep() {
         <button className="btn primary" disabled={!complete || busy} onClick={next}>{t("step.next")} <Icon name="chevronRight" size={18} /></button>
       </>
     }>
-      <Choice legend={t("field.prev")} help={t("help.prev")} value={a.prev} onChange={set("prev")}
-        options={[...CROPS.map((c) => [c, <><CropIcon id={c} size={30} className="ce" /><span>{t(`crop.${c}`)}</span></>]),
-          ["none", <><CropIcon id="none" size={30} className="ce" /><span>{t("field.none")}</span></>]]} />
+      <Choice legend={t("field.prev")} help={t("help.prev")} value={a.prev} onChange={set("prev")} tiles
+        options={[...CROPS.map((c) => [c, <><CropIcon id={c} size={36} className="ce" /><span>{t(`crop.${c}`)}</span></>]),
+          ["none", <><CropIcon id="none" size={36} className="ce" /><span>{t("field.none")}</span></>]]} />
       <Choice legend={t("field.source")} help={t("help.source")} value={a.source} onChange={set("source")}
         options={["river", "well", "reservoir", "none"].map((s) => [s, t(`source.${s}`)])} />
       {a.source !== "none" && (

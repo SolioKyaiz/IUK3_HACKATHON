@@ -41,7 +41,10 @@ function SideMenu() {
   const inFlow = ["/plot", "/field", "/priority", "/plans"].includes(loc.pathname);
   return (
     <nav className="side-menu" aria-label="SuuPlan">
-      <div className="logo" aria-label="SuuPlan">Suu<span>Plan</span></div>
+      <div className="logo" aria-label="SuuPlan">
+        <span className="logo-mark"><Icon name="drop" size={20} /></span>
+        <span className="logo-word">Suu<b>Plan</b></span>
+      </div>
       {items.map(([to, icon, key]) => (
         <NavLink key={to} to={to} className={({ isActive }) => (isActive || (to === "/plot" && inFlow) ? "active" : "")}>
           <Icon name={icon} size={22} />

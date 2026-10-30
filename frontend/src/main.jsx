@@ -6,7 +6,6 @@ import "@fontsource/nunito/400.css";
 import "@fontsource/nunito/700.css";
 import "@fontsource/nunito/800.css";
 import "./styles.css";
-import "./theme.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

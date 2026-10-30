@@ -49,44 +49,70 @@ export default function PlotStep() {
 
   return (
     <Step title={t("plot.title")} n={1} footer={footer}>
+      <section className="section">
+        <button className="btn secondary block" disabled={here === "busy"} onClick={async () => {
+          setHere("busy");
+          setHere(await plotHere());
+        }}>
+          <Icon name="pin" size={20} /> {here === "busy" ? t("plot.hereBusy") : t("plot.here")}
+        </button>
+        {here && here !== "busy" && <p className="error" role="alert">{t(here)}</p>}
+      </section>
+
+      <section className="section">
+        {draft ? (
+          <div className={`plot-current ${invalid ? "invalid" : ""}`}>
+            <div className="plot-current-head">
+              <span className="plot-current-name">
+                {draft.plotId ? plots.find((p) => p.id === draft.plotId)?.name : t("plot.unsaved")}
+              </span>
+              <strong className="plot-current-area">{t("plot.ha", { value: fmtNum(t.lang, area, 2) })}</strong>
+            </div>
+            <p className="hint">{t("plot.hintEdit")}</p>
+            <div className="toolbar">
+              <button className="btn subtle small" onClick={undo} disabled={!draft.history?.length}>
+                <Icon name="undo" size={16} /> {t("plot.undo")}
+              </button>
+              <button className="btn subtle small" onClick={newPlot}>{t("plot.new")}</button>
+            </div>
+          </div>
+        ) : (
+          <div className="callout">
+            <Icon name="field" size={22} />
+            <div>
+              <p>{t("plot.hint")}</p>
+              <p className="hint">{t("plot.hereHint")}</p>
+            </div>
+          </div>
+        )}
+      </section>
+
       {token && plots.length > 0 && (
-        <ul className="plot-list" aria-label={t("plot.saved")}>
-          {plots.map((p) => {
-            const on = draft?.plotId === p.id;
-            return (
-              <li key={p.id} className={`plot-item ${on ? "on" : ""}`}>
-                <button className="plot-pick" aria-pressed={on} onClick={() => selectPlot(p)}>
-                  <span>{p.name}</span>
-                  <span className="muted">{t("plot.ha", { value: fmtNum(t.lang, p.area_ha, 2) })}</span>
-                </button>
-                <button className="icon-btn" title={t("plot.rename")} aria-label={`${t("plot.rename")}: ${p.name}`} onClick={async () => {
-                  const name = window.prompt(t("plot.namePrompt"), p.name);
-                  if (name?.trim()) await renamePlot(p, name.trim()).catch((e) => setErr(e.code));
-                }}><Icon name="edit" size={18} /></button>
-                <button className="icon-btn" title={t("plot.delete")} aria-label={`${t("plot.delete")}: ${p.name}`}
-                  onClick={() => confirmThen(t("plot.deleteConfirm", { name: p.name }), () => deletePlot(p))}>
-                  <Icon name="trash" size={18} />
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+        <section className="section">
+          <h2 className="section-title">{t("plot.saved")}</h2>
+          <ul className="plot-list">
+            {plots.map((p) => {
+              const on = draft?.plotId === p.id;
+              return (
+                <li key={p.id} className={`plot-item ${on ? "on" : ""}`}>
+                  <button className="plot-pick" aria-pressed={on} onClick={() => selectPlot(p)}>
+                    <span className="plot-pick-name">{p.name}</span>
+                    <span className="muted small">{t("plot.ha", { value: fmtNum(t.lang, p.area_ha, 2) })}</span>
+                  </button>
+                  <button className="icon-btn" title={t("plot.rename")} aria-label={`${t("plot.rename")}: ${p.name}`} onClick={async () => {
+                    const name = window.prompt(t("plot.namePrompt"), p.name);
+                    if (name?.trim()) await renamePlot(p, name.trim()).catch((e) => setErr(e.code));
+                  }}><Icon name="edit" size={18} /></button>
+                  <button className="icon-btn" title={t("plot.delete")} aria-label={`${t("plot.delete")}: ${p.name}`}
+                    onClick={() => confirmThen(t("plot.deleteConfirm", { name: p.name }), () => deletePlot(p))}>
+                    <Icon name="trash" size={18} />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
       )}
-      {draft && !draft.plotId && (
-        <div className="plot-item on new"><span>{t("plot.ha", { value: fmtNum(t.lang, area, 2) })}</span><span className="muted small">{t("plot.unsaved")}</span></div>
-      )}
-      <button className="btn here block" disabled={here === "busy"} onClick={async () => {
-        setHere("busy");
-        setHere(await plotHere());
-      }}>
-        <Icon name="pin" size={20} /> {here === "busy" ? t("plot.hereBusy") : t("plot.here")}
-      </button>
-      {here && here !== "busy" ? <p className="error" role="alert">{t(here)}</p> : !draft && <p className="hint">{t("plot.hereHint")}</p>}
-      <div className="row">
-        <button className="btn ghost" onClick={newPlot}>{t("plot.new")}</button>
-        {draft?.history?.length > 0 && <button className="btn ghost" onClick={undo}><Icon name="undo" size={18} /> {t("plot.undo")}</button>}
-      </div>
-      <p className="hint">{draft ? t("plot.hintEdit") : t("plot.hint")}</p>
       {err && <p className="error" role="alert">{t(`plot.err.${err}`) !== `plot.err.${err}` ? t(`plot.err.${err}`) : t(`err.${err}`)}</p>}
     </Step>
   );

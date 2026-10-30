@@ -41,6 +41,7 @@ export default function SavedStep() {
       )}
       {saved.length === 0 && status !== "loading" && (
         <div className="empty">
+          <span className="empty-art" aria-hidden="true"><Icon name="plans" size={40} /></span>
           <p>{t("saved.empty")}</p>
           <button className="btn primary" onClick={() => nav("/plot")}>{t("saved.start")}</button>
         </div>
@@ -77,15 +78,17 @@ function SavedCard({ row, onFocus }) {
   return (
     <li className="saved-card">
       <button className="saved-main" onClick={onFocus}>
-        <div className="row between">
-          <strong>{inputs.planLabel}</strong>
+        <div className="saved-head">
+          <strong className="saved-title">{inputs.planLabel}</strong>
           <span className="muted small">{fmtDate(t.lang, row.created_at)}</span>
         </div>
-        <div className="muted small">{t("saved.plot", { name: inputs.plotName, area: fmtNum(t.lang, inputs.area_ha || 0, 2) })}</div>
-        <ol className="years compact">
-          {plan.years.map((c, i) => <li key={i}><CropIcon id={c} size={22} /> {t(`crop.${c}`)}</li>)}
+        <div className="saved-meta"><Icon name="field" size={15} /> {t("saved.plot", { name: inputs.plotName, area: fmtNum(t.lang, inputs.area_ha || 0, 2) })}</div>
+        <ol className="crop-seq" aria-label={plan.years.map((c) => t(`crop.${c}`)).join(", ")}>
+          {plan.years.map((c, i) => (
+            <li key={i}><CropIcon id={c} size={26} /><span>{t(`crop.${c}`)}</span></li>
+          ))}
         </ol>
-        <div className="small">{inputs.source === "none" ? t("plans.rainfed", { mm: plan.deficit_mm }) : t("plans.water", { m3: fmtNum(t.lang, plan.water_m3_year) })}</div>
+        <div className="saved-water"><Icon name="drop" size={15} /> {inputs.source === "none" ? t("plans.rainfed", { mm: plan.deficit_mm }) : t("plans.water", { m3: fmtNum(t.lang, plan.water_m3_year) })}</div>
       </button>
       <div className="actions">
         <button className="share-btn pdf" onClick={pdf} disabled={pdfBusy} aria-label={t("saved.pdf")} title={t("saved.pdf")}>
@@ -106,7 +109,7 @@ function SavedCard({ row, onFocus }) {
             <Icon name="share" size={20} />
           </button>
         )}
-        <button className="btn small danger-ghost push-right" onClick={() => confirmThen(t("saved.deleteConfirm"), () => deleteSaved(row))}>
+        <button className="btn subtle small danger-ghost push-right" onClick={() => confirmThen(t("saved.deleteConfirm"), () => deleteSaved(row))}>
           <Icon name="trash" size={16} /> {t("saved.delete")}
         </button>
       </div>

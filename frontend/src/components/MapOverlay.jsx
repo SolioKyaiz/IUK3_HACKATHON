@@ -170,8 +170,10 @@ function MapButtons({ mobile }) {
       </div>
       {!mobile && (
         <>
-          <button className="map-btn" aria-label={t("map.zoomIn")} title={t("map.zoomIn")} onClick={() => mapRef.current?.zoomIn()}><Icon name="plus" /></button>
-          <button className="map-btn" aria-label={t("map.zoomOut")} title={t("map.zoomOut")} onClick={() => mapRef.current?.zoomOut()}><Icon name="minus" /></button>
+          <div className="map-btn-group" role="group" aria-label={`${t("map.zoomIn")} / ${t("map.zoomOut")}`}>
+            <button className="map-btn" aria-label={t("map.zoomIn")} title={t("map.zoomIn")} onClick={() => mapRef.current?.zoomIn()}><Icon name="plus" /></button>
+            <button className="map-btn" aria-label={t("map.zoomOut")} title={t("map.zoomOut")} onClick={() => mapRef.current?.zoomOut()}><Icon name="minus" /></button>
+          </div>
         </>
       )}
       <button className={`map-btn ${locating ? "busy" : ""}`} aria-label={t("map.locate")} title={t("map.locate")} onClick={locate}><Icon name="locate" /></button>
