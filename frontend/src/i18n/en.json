@@ -281,5 +281,13 @@
   "assistant.welcome": "Hello! I explain how SuuPlan works. Pick a question below or type your own.",
   "assistant.noMatch": "I couldn't find a ready answer to that. Pick one of the questions above or ask in other words.",
   "assistant.typing": "Typing…",
-  "assistant.slow": "The server is not answering, so I'm showing a ready answer."
+  "assistant.slow": "The server is not answering, so I'm showing a ready answer.",
+  "crop.onion": "Onion",
+  "crop.carrot": "Carrot",
+  "crop.tomato": "Tomato",
+  "crop.cabbage": "Cabbage",
+  "crop.melon": "Melon",
+  "crop.tobacco": "Tobacco",
+  "crop.chickpea": "Chickpea",
+  "crop.soybean": "Soybean"
 }

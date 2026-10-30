@@ -8,7 +8,9 @@ import Icon from "../components/Icons";
 import { saveAnswers } from "../lib/actions";
 import CropIcon from "../components/CropIcon";
 
-export const CROPS = ["wheat", "barley", "maize", "potato", "beans", "sugar_beet", "sunflower", "cotton", "alfalfa", "rice"];
+// Same ids as backend/suuplan/data/crops.csv (npm run check:i18n verifies every one has a name).
+export const CROPS = ["wheat", "barley", "maize", "rice", "potato", "sugar_beet", "onion", "carrot", "tomato", "cabbage",
+  "melon", "beans", "chickpea", "soybean", "alfalfa", "sunflower", "cotton", "tobacco"];
 
 function Choice({ legend, help, options, value, onChange, cols = 2, tiles = false }) {
   const t = useT();
