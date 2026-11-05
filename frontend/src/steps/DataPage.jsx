@@ -9,7 +9,7 @@ import { OnboardingButton } from "../components/Onboarding";
 const SOURCES = [
   ["power", "data", "live"],
   ["soilgrids", "sprout", "live"],
-  ["modis", "snow", "demo"],
+  ["modis", "snow", "live"],
   ["hydrobasins", "drop", "reference"],
   ["osm", "field", "live"],
   ["border", "pin", "reference"],

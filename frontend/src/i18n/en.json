@@ -195,7 +195,7 @@
   "data.osm": "OpenStreetMap — base map and settlements (ODbL). Esri World Imagery — satellite.",
   "data.border": "Country border: geoBoundaries (CC BY 3.0 IGO).",
   "data.crops": "Crop water needs, soil fit and the 1–5 income index are approximate values (FAO-56 style) and will be replaced by verified sources.",
-  "data.demo": "Demo: snow labels are synthetic until the daily MODIS job is connected.",
+  "data.demo": "Demo: values marked «Demo» are estimates — approximate crop figures, sowing dates without a published source and soil water at sowing.",
   "assistant.open": "Helper",
   "assistant.title": "Helper",
   "assistant.note": "The helper explains the app, it does not make plans",
