@@ -1,6 +1,6 @@
 // Loaded only when the user taps "PDF" (jsPDF and the font are not in the main bundle).
 import { translate, fmtNum, fmtDate } from "../i18n";
-import { snowText, reasonText } from "./share";
+import { snowText, reasonText, naturalLines, sourceLines, yearRows } from "./share";
 
 async function fontBase64(url) {
   const buf = await (await fetch(url)).arrayBuffer();
@@ -41,15 +41,40 @@ export async function makePdf(lang, saved) {
   doc.setFontSize(12);
   doc.text(t("share.plot", { name: inputs.plotName, area: fmtNum(lang, inputs.area_ha, 2) }), 18, y);
   y += 12;
+  const years = yearRows(lang, saved);
+  if (years) y = Math.max(y, 88); // the sowing/water columns would run into the outline (y 26–78)
   doc.setFont("Noto", "bold"); doc.setFontSize(14);
   plan.years.forEach((c, i) => {
     doc.text(`${t("plans.year", { n: i + 1 })}: ${t(`crop.${c}`)}`, 18, y);
+    if (years) {
+      doc.setFont("Noto", "normal"); doc.setFontSize(11);
+      doc.text(years.rows[i].sow, 110, y);
+      doc.text(years.rows[i].water, 192, y, { align: "right" });
+      doc.setFont("Noto", "bold"); doc.setFontSize(14);
+    }
     y += 9;
   });
   doc.setFont("Noto", "normal"); doc.setFontSize(12);
+  if (years?.total) { doc.setFont("Noto", "bold"); doc.text(years.total, 192, y - 2, { align: "right" }); doc.setFont("Noto", "normal"); y += 5; }
+  if (years) { doc.setFontSize(9); doc.setTextColor(90); doc.text(`${t("saved.sowNote")} (${t("app.demo")})`, 18, y); doc.setTextColor(0); doc.setFontSize(12); y += 5; }
   y += 4;
   const water = inputs.source === "none" ? t("plans.rainfed", { mm: plan.deficit_mm }) : t("plans.water", { m3: fmtNum(lang, plan.water_m3_year) });
   doc.text(doc.splitTextToSize(water, 170), 18, y); y += 8;
+  for (const l of sourceLines(lang, saved)) {
+    const lines = doc.splitTextToSize(l.text + (l.demo ? ` (${t("app.demo")})` : ""), 170);
+    doc.text(lines, 18, y); y += 6 * lines.length;
+  }
+  const natural = naturalLines(lang, saved);
+  for (const l of natural) {
+    const lines = doc.splitTextToSize(l.text + (l.demo ? ` (${t("app.demo")})` : ""), 170);
+    doc.text(lines, 18, y); y += 6 * lines.length;
+  }
+  if (natural.length) {
+    doc.setFontSize(9); doc.setTextColor(90);
+    const note = doc.splitTextToSize(t("saved.naturalNote"), 170);
+    doc.text(note, 18, y); y += 4.5 * note.length + 3.5;
+    doc.setFontSize(12); doc.setTextColor(0);
+  }
   const snow = inputs.snowUsed && inputs.snow?.label
     ? `${t(`snow.${inputs.snow.label}`)} · ${t("snow.date", { date: fmtDate(lang, inputs.snow.date) })}`
     : snowText(lang, inputs.snow, inputs.snowUsed);

@@ -5,7 +5,7 @@ import { useT, fmtNum, fmtDate } from "../i18n";
 import Step from "../components/Step";
 import Icon, { PdfLogo, TelegramLogo, WhatsAppLogo } from "../components/Icons";
 import { confirmThen, deleteSaved, refreshSaved } from "../lib/actions";
-import { planText, telegramUrl, whatsappUrl } from "../lib/share";
+import { naturalLines, planText, sourceLines, telegramUrl, whatsappUrl, yearRows } from "../lib/share";
 import { fromGeoJSON } from "../lib/geo";
 import { InstallButton } from "../components/Install";
 import CropIcon from "../components/CropIcon";
@@ -60,6 +60,9 @@ function SavedCard({ row, onFocus }) {
   const [pdfBusy, setPdfBusy] = useState(false);
   const { plan, inputs } = row;
   const text = () => planText(t.lang, row);
+  const natural = naturalLines(t.lang, row);
+  const years = yearRows(t.lang, row);
+  const sources = sourceLines(t.lang, row);
 
   const pdf = async () => {
     setPdfBusy(true);
@@ -89,6 +92,39 @@ function SavedCard({ row, onFocus }) {
           ))}
         </ol>
         <div className="saved-water"><Icon name="drop" size={15} /> {inputs.source === "none" ? t("plans.rainfed", { mm: plan.deficit_mm }) : t("plans.water", { m3: fmtNum(t.lang, plan.water_m3_year) })}</div>
+        {years && (
+          <div className="saved-years">
+            {years.rows.map((r) => (
+              <div key={r.year} className="saved-year">
+                <span className="muted">{r.year}</span>
+                <span className="saved-year-crop"><CropIcon id={r.crop} size={20} /> {t(`crop.${r.crop}`)}</span>
+                <span className="muted">{r.sow}</span>
+                <span className="saved-year-water">{r.water}</span>
+              </div>
+            ))}
+            {years.total && <div className="saved-year-total">{years.total}</div>}
+            <p className="muted tiny">{t("saved.sowNote")} <span className="pill demo">{t("app.demo")}</span></p>
+          </div>
+        )}
+        <div className="saved-source">
+          {sources.map((l) => (
+            <div key={l.key} className="saved-natural-line">
+              <Icon name={l.key === "mountains" ? "snow" : "pin"} size={15} /> <span>{l.text}</span>
+              {l.demo && <span className="pill demo">{t("app.demo")}</span>}
+            </div>
+          ))}
+        </div>
+        {natural.length > 0 && (
+          <div className="saved-natural">
+            {natural.map((l) => (
+              <div key={l.key} className="saved-natural-line">
+                <Icon name={l.key === "rain" ? "drop" : "sprout"} size={15} /> <span>{l.text}</span>
+                {l.demo && <span className="pill demo">{t("app.demo")}</span>}
+              </div>
+            ))}
+            <p className="muted tiny">{t("saved.naturalNote")}</p>
+          </div>
+        )}
       </button>
       <div className="actions">
         <button className="share-btn pdf" onClick={pdf} disabled={pdfBusy} aria-label={t("saved.pdf")} title={t("saved.pdf")}>

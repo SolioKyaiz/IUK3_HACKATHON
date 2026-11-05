@@ -79,3 +79,44 @@ def test_baseline_is_wheat_every_year():
     expected = round(scoring.irrigation_mm(wheat, CTX["rain"], rules) * 10 * CTX["area_ha"])
     assert r["baseline"] == {"crop": "wheat", "water_m3_year": expected}
     assert scoring.make_plans(inp(source="none"), CTX)["baseline"]["water_m3_year"] == 0
+
+
+def test_natural_water_rain_and_soil_at_sowing():
+    gwet = {f"{m:02d}{d:02d}": 0.6 for m in range(1, 13) for d in range(1, 32)}
+    plan = scoring.make_plans(inp(), {**CTX, "gwet": gwet})["plans"][0]
+    nat = plan["natural"]
+    assert nat["rain_m3"] == CTX["rain"] * 10 * CTX["area_ha"]
+    assert nat["sow_crop"] == plan["years"][0]
+    # medium soil: min(0.6 * 0.46, 0.30) - 0.13 = 0.146 m3/m3 over 1 m -> 146 mm
+    assert nat["soil_mm"] == 146 and nat["soil_m3"] == round(146 * 10 * CTX["area_ha"])
+
+
+def test_natural_water_without_wetness_data():
+    nat = scoring.make_plans(inp(), CTX)["plans"][0]["natural"]
+    assert nat["soil_m3"] is None and nat["rain_m3"] > 0
+
+
+def test_summarize_power_soil_wetness_by_day():
+    from suuplan.climate import summarize_power
+    days = [f"{y}{m:02d}{d:02d}" for y in (2023, 2024) for m in range(1, 13) for d in range(1, 29)]
+    daily = {"T2M_MIN": {k: 5.0 for k in days}, "T2M_MAX": {k: 20.0 for k in days},
+             "PRECTOTCORR": {k: 1.0 for k in days},
+             "GWETROOT": {k: (0.4 if k.startswith("2023") else 0.6) for k in days} | {"20240415": -999.0}}
+    s = summarize_power(daily, [2023, 2024])
+    assert s["gwet"]["0101"] == 0.5 and s["gwet"]["0415"] == 0.4  # fill value skipped
+
+
+def test_by_year_rows_add_up():
+    plan = scoring.make_plans(inp(), CTX)["plans"][0]
+    rows = plan["by_year"]
+    assert [r["crop"] for r in rows] == plan["years"]
+    assert all(r["sow_date"] for r in rows)
+    assert abs(sum(r["water_m3"] for r in rows) - plan["water_m3_total"]) <= 3
+    assert abs(plan["water_m3_total"] - 3 * plan["water_m3_year"]) <= 3
+    rainfed = scoring.make_plans(inp(source="none"), CTX)["plans"][0]
+    assert rainfed["water_m3_total"] == 0 and all(r["water_m3"] == 0 and r["deficit_mm"] >= 0 for r in rainfed["by_year"])
+
+
+def test_every_demo_basin_names_its_mountains():
+    from suuplan.geo import basins
+    assert all(b["mountains"] and set(b["mountains"]) == {"en", "ru", "ky"} for b in basins())

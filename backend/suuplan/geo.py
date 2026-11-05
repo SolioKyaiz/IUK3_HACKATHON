@@ -77,6 +77,7 @@ def basins():
         with open(hydro, encoding="utf-8") as f:
             fc = json.load(f)
         return [{"id": str(ft["properties"]["id"]), "name": ft["properties"]["name"],
+                 "mountains": ft["properties"].get("mountains"),
                  "geom": shape(ft["geometry"]), "source": "HydroBASINS"} for ft in fc["features"]]
 
     with open(DATA_DIR / "basin_seeds.json", encoding="utf-8") as f:
@@ -89,7 +90,7 @@ def basins():
         p = Point(s["lon"], s["lat"])
         cell = next(c for c in cells.geoms if c.contains(p))
         geom = cell.intersection(border).simplify(0.01, preserve_topology=True)
-        out.append({"id": s["id"], "name": s["name"], "geom": geom, "source": "demo"})
+        out.append({"id": s["id"], "name": s["name"], "mountains": s.get("mountains"), "geom": geom, "source": "demo"})
     return out
 
 

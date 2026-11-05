@@ -7,6 +7,7 @@ import csv
 import itertools
 import json
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from functools import lru_cache
 from statistics import mean
 
@@ -34,6 +35,7 @@ class Crop:
     soil_effect: float
     once_per_plan: bool
     water_verified: bool
+    sow_mmdd: str
 
 
 @lru_cache
@@ -46,7 +48,7 @@ def load_crops():
             ph_min=float(r["ph_min"]), ph_max=float(r["ph_max"]), income_index=float(r["income_index"]),
             heat_sensitivity=float(r["heat_sensitivity"]), drought_tolerance=float(r["drought_tolerance"]),
             soil_effect=float(r["soil_effect"]), once_per_plan=r["once_per_plan"] == "1",
-            water_verified=r["water_verified"] == "1") for r in csv.DictReader(f)}
+            water_verified=r["water_verified"] == "1", sow_mmdd=r["sow_mmdd"]) for r in csv.DictReader(f)}
 
 
 @lru_cache
@@ -195,6 +197,47 @@ def reasons_for(plan, inp, ctx, rules):
     return out
 
 
+def soil_water_mm(crop, ctx, rules):
+    """Plant-available water in the root zone on the crop's sowing date, past-years average. None without data."""
+    gwet = ctx.get("gwet")
+    if not gwet:
+        return None
+    sow = datetime.strptime(f"2001-{crop.sow_mmdd}", "%Y-%m-%d")
+    w = rules["sowing_window_days"]
+    days = [(sow + timedelta(days=d)).strftime("%m%d") for d in range(-w, w + 1)]
+    vals = [gwet[d] for d in days if d in gwet]
+    if not vals:
+        return None
+    tex = ctx["soil"]["texture"]
+    theta = min(mean(vals) * rules["soil_porosity"][tex], rules["soil_field_capacity"][tex])
+    return max(0.0, theta - rules["soil_wilting_point"][tex]) * rules["root_zone_m"] * 1000
+
+
+def natural_water(plan, ctx, rules):
+    """Water the plot gets without irrigation: season rain (Apr–Sep) and soil water when year 1 is sown."""
+    first = load_crops()[plan["years"][0]]
+    k = rules["m3_per_mm_ha"] * ctx["area_ha"]
+    soil_mm = soil_water_mm(first, ctx, rules)
+    return {"rain_m3": round(ctx["rain"] * k), "rain_mm": ctx["rain"],
+            "soil_m3": round(soil_mm * k) if soil_mm is not None else None,
+            "soil_mm": round(soil_mm) if soil_mm is not None else None,
+            "sow_crop": first.id, "sow_date": first.sow_mmdd}
+
+
+def by_year(plan, inp, ctx, rules):
+    """Per-year crop, typical sowing date and water for the whole plot (irrigation m³, or rain shortfall mm)."""
+    crops = load_crops()
+    k = rules["m3_per_mm_ha"] * ctx["area_ha"]
+    rows = []
+    for cid in plan["years"]:
+        mm = irrigation_mm(crops[cid], ctx["rain"], rules)
+        rows.append({"crop": cid, "sow_date": crops[cid].sow_mmdd,
+                     "water_m3": round(mm * k) if inp["source"] != "none" else 0,
+                     "deficit_mm": round(mm) if inp["source"] == "none" else 0})
+    total = round(sum(irrigation_mm(crops[c], ctx["rain"], rules) for c in plan["years"]) * k)
+    return rows, total if inp["source"] != "none" else 0
+
+
 def different_enough(a, b, rules):
     diff = sum(x != y for x, y in zip(a, b))
     return diff >= rules["min_years_different"] and sorted(a) != sorted(b)
@@ -234,6 +277,8 @@ def make_plans(inp, ctx):
                 picked.append(p)
     for p in picked:
         p["reasons"] = reasons_for(p, inp, ctx, rules)
+        p["natural"] = natural_water(p, ctx, rules)
+        p["by_year"], p["water_m3_total"] = by_year(p, inp, ctx, rules)
 
     # Crops that made it through filtering but appear in none of the picked plans.
     in_plans = {c for p in picked for c in p["years"]} | {c for s in shown for c in s}

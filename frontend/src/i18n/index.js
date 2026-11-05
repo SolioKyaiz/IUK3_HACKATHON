@@ -33,6 +33,13 @@ export function fmtNum(lang, n, digits = 0) {
   return new Intl.NumberFormat(NUM_LOCALES[lang], { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(n);
 }
 
+// "MM-DD" without a year (typical sowing dates): "1-октябрь", "1 окт.", "1 Oct".
+export function fmtDayMonth(lang, mmdd) {
+  const [m, d] = mmdd.split("-").map(Number);
+  if (lang === "ky") return `${d}-${KY_MONTHS[m - 1]}`;
+  return new Intl.DateTimeFormat(lang === "ru" ? "ru-RU" : "en-GB", { day: "numeric", month: "short" }).format(new Date(2001, m - 1, d));
+}
+
 export function fmtDate(lang, iso) {
   if (!iso) return "—";
   const d = new Date(iso);

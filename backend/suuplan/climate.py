@@ -15,8 +15,10 @@ FALLBACK_SOIL = {"texture": "medium", "ph": 7.5, "source": "fallback"}
 
 
 def summarize_power(daily, years):
-    """daily: {param: {YYYYMMDD: value}} -> frost-free days, Apr–Sep rain, hot days (yearly means)."""
+    """daily: {param: {YYYYMMDD: value}} -> frost-free days, Apr–Sep rain, hot days (yearly means)
+    and root-zone soil wetness per MMDD (mean over the years)."""
     tmin, tmax, rain = daily["T2M_MIN"], daily["T2M_MAX"], daily["PRECTOTCORR"]
+    wet = daily.get("GWETROOT", {})
     ffds, rains, heats = [], [], []
     for y in years:
         days = sorted(k for k in tmin if k.startswith(str(y)) and tmin[k] > -900)
@@ -31,7 +33,12 @@ def summarize_power(daily, years):
         heats.append(sum(1 for d in days if tmax[d] >= 35))
     if not ffds:
         raise ValueError("no complete years")
+    by_day = {}
+    for k, v in wet.items():
+        if k[:4] in {str(y) for y in years} and v is not None and v >= 0:
+            by_day.setdefault(k[4:], []).append(v)
     return {"ffd": round(mean(ffds)), "rain": round(mean(rains)), "heat": round(mean(heats), 1),
+            "gwet": {d: round(mean(vs), 3) for d, vs in sorted(by_day.items())} or None,
             "source": "NASA POWER", "years": f"{years[0]}–{years[-1]}"}
 
 
@@ -39,13 +46,15 @@ def get_climate(db, lat, lon):
     key = f"{lat:.1f},{lon:.1f}"
     row = db.get(CachePower, key)
     now = datetime.now(timezone.utc)
-    if row and (now - row.fetched_at.replace(tzinfo=timezone.utc)) < timedelta(days=POWER_CACHE_DAYS):
+    # Rows cached before soil wetness was added ("gwet" missing) are refreshed.
+    fresh = row and (now - row.fetched_at.replace(tzinfo=timezone.utc)) < timedelta(days=POWER_CACHE_DAYS)
+    if fresh and "gwet" in row.data:
         return row.data
     if not EXTERNAL_DATA:
-        return FALLBACK_CLIMATE
+        return row.data if row else FALLBACK_CLIMATE
     last = date.today().year - 1
     years = list(range(last - 4, last + 1))
-    params = {"parameters": "T2M_MIN,T2M_MAX,PRECTOTCORR", "community": "AG",
+    params = {"parameters": "T2M_MIN,T2M_MAX,PRECTOTCORR,GWETROOT", "community": "AG",
               "latitude": round(lat, 2), "longitude": round(lon, 2),
               "start": f"{years[0]}0101", "end": f"{years[-1]}1231", "format": "JSON"}
     try:

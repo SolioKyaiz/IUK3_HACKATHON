@@ -248,15 +248,21 @@ def plot_context(db, p, soil_answer=None):
     b = basin_for_point(lat, lon)
     s = snow.latest(db).get(b["id"], {"label": "normal", "date": None, "demo": True, "anomaly": None})
     return {"ffd": clim["ffd"], "rain": clim["rain"], "heat": clim["heat"], "climate_source": clim["source"],
-            "soil": soil, "basin": {"id": b["id"], "name": b["name"], "source": b["source"]},
+            "gwet": clim.get("gwet"),
+            "soil": soil, "basin": {"id": b["id"], "name": b["name"], "mountains": b["mountains"], "source": b["source"]},
             "snow": s, "area_ha": p.area_ha}
+
+
+def public_context(ctx):
+    """Context for the client: the per-day soil wetness table is only needed by the engine."""
+    return {k: v for k, v in ctx.items() if k != "gwet"}
 
 
 @app.get("/plots/{plot_id}/context")
 def get_context(plot_id: int, uid: int = Depends(current_user), db: Session = Depends(get_db)):
     p = own_plot(db, uid, plot_id)
     a = db.get(PlotAnswers, p.id)
-    return plot_context(db, p, (a.answers if a else {}).get("soil"))
+    return public_context(plot_context(db, p, (a.answers if a else {}).get("soil")))
 
 
 # ---------- plans ----------
@@ -280,7 +286,7 @@ def post_plans(body: PlansIn, uid: int = Depends(current_user), db: Session = De
     db.commit()
     ctx = plot_context(db, p, body.soil)
     result = scoring.make_plans(body.model_dump(), ctx)
-    result["context"] = ctx
+    result["context"] = public_context(ctx)
     return result
 
 
