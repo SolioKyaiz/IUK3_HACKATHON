@@ -82,3 +82,15 @@ def test_assistant_faq_mode_and_sow_refusal(client):
     assert r.status_code == 503 and r.json()["code"] == "assistant_unavailable"
     r = client.post("/assistant/chat", json={"messages": [{"role": "user", "content": "Что мне посеять?"}], "lang": "ru"})
     assert r.status_code == 200 and "Планы" in r.text and '"goto": "plans"' in r.text
+
+
+def test_snow_seed_fills_basins_without_rows(client):
+    from sqlalchemy import delete, select
+    from suuplan import snow
+    from suuplan.db import SessionLocal, SnowDaily
+    from suuplan.geo import basins
+    with SessionLocal() as db:
+        db.execute(delete(SnowDaily).where(SnowDaily.basin_id == "naryn"))
+        db.commit()
+        snow.seed_demo(db)
+        assert set(db.scalars(select(SnowDaily.basin_id).distinct())) >= {b["id"] for b in basins()}

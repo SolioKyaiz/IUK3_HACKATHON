@@ -22,10 +22,10 @@
   "plans_per_page": 3,
   "baseline_crop": "wheat",
   "min_years_different": 2,
-  "_soil_water_comment": "Plant-available water at sowing = (min(wetness*porosity, field_capacity) - wilting_point) * root_zone_m. Wetness is NASA POWER GWETROOT (MERRA-2 root zone, ~1 m), averaged +-3 days around the sowing date over the past 5 years. Volumetric fractions are DEMO textbook values.",
+  "_soil_water_comment": "Plant-available water at sowing = (min(wetness*porosity, field_capacity) - wilting_point) * root_zone_m. Wetness is NASA POWER GWETROOT (MERRA-2 root zone, ~1 m), averaged +-3 days around the sowing date over the past 5 years. Field capacity and wilting point: midpoints of FAO-56 Table 19 (Allen et al. 1998) for sand / loam / clay. Porosity: Rawls, Brakensiek & Saxton (1982) for sand / loam / clay.",
   "root_zone_m": 1.0,
-  "soil_porosity": {"sandy": 0.40, "medium": 0.46, "clay": 0.50},
-  "soil_field_capacity": {"sandy": 0.15, "medium": 0.30, "clay": 0.40},
-  "soil_wilting_point": {"sandy": 0.06, "medium": 0.13, "clay": 0.25},
+  "soil_porosity": {"sandy": 0.437, "medium": 0.463, "clay": 0.475},
+  "soil_field_capacity": {"sandy": 0.12, "medium": 0.25, "clay": 0.36},
+  "soil_wilting_point": {"sandy": 0.045, "medium": 0.12, "clay": 0.22},
   "sowing_window_days": 3
 }

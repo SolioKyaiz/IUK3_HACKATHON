@@ -87,8 +87,8 @@ def test_natural_water_rain_and_soil_at_sowing():
     nat = plan["natural"]
     assert nat["rain_m3"] == CTX["rain"] * 10 * CTX["area_ha"]
     assert nat["sow_crop"] == plan["years"][0]
-    # medium soil: min(0.6 * 0.46, 0.30) - 0.13 = 0.146 m3/m3 over 1 m -> 146 mm
-    assert nat["soil_mm"] == 146 and nat["soil_m3"] == round(146 * 10 * CTX["area_ha"])
+    # medium soil (loam): min(0.6 * 0.463, 0.25) - 0.12 = 0.13 m3/m3 over 1 m -> 130 mm
+    assert nat["soil_mm"] == 130 and nat["soil_m3"] == round(130 * 10 * CTX["area_ha"])
 
 
 def test_natural_water_without_wetness_data():
@@ -111,12 +111,14 @@ def test_by_year_rows_add_up():
     rows = plan["by_year"]
     assert [r["crop"] for r in rows] == plan["years"]
     assert all(r["sow_date"] for r in rows)
+    crops = scoring.load_crops()
+    assert all(r["sow_cited"] == bool(crops[r["crop"]].sow_source) for r in rows)
     assert abs(sum(r["water_m3"] for r in rows) - plan["water_m3_total"]) <= 3
     assert abs(plan["water_m3_total"] - 3 * plan["water_m3_year"]) <= 3
     rainfed = scoring.make_plans(inp(source="none"), CTX)["plans"][0]
     assert rainfed["water_m3_total"] == 0 and all(r["water_m3"] == 0 and r["deficit_mm"] >= 0 for r in rainfed["by_year"])
 
 
-def test_every_demo_basin_names_its_mountains():
+def test_every_basin_names_its_mountains():
     from suuplan.geo import basins
     assert all(b["mountains"] and set(b["mountains"]) == {"en", "ru", "ky"} for b in basins())

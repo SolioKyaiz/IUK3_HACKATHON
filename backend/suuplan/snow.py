@@ -20,10 +20,12 @@ def label_for(anomaly):
 
 
 def seed_demo(db):
-    if db.scalar(select(func.count()).select_from(SnowDaily)):
-        return
+    """Demo rows for every basin that has no snow data yet (also after switching basin sets)."""
+    have = set(db.scalars(select(SnowDaily.basin_id).distinct()))
     day = date.today() - timedelta(days=1)
     for b in basins():
+        if b["id"] in have:
+            continue
         h = int(hashlib.sha256(b["id"].encode()).hexdigest()[:8], 16)
         anomaly = round((h % 700) / 10 - 35, 1)
         fraction = round(0.2 + (h % 500) / 1000, 3)

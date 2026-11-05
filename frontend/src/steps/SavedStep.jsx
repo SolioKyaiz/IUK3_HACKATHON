@@ -103,7 +103,7 @@ function SavedCard({ row, onFocus }) {
               </div>
             ))}
             {years.total && <div className="saved-year-total">{years.total}</div>}
-            <p className="muted tiny">{t("saved.sowNote")} <span className="pill demo">{t("app.demo")}</span></p>
+            <p className="muted tiny">{years.note}{years.demo && <> <span className="pill demo">{t("app.demo")}</span></>}</p>
           </div>
         )}
         <div className="saved-source">

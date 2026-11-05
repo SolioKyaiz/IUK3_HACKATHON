@@ -10,7 +10,7 @@ const SOURCES = [
   ["power", "data", "live"],
   ["soilgrids", "sprout", "live"],
   ["modis", "snow", "demo"],
-  ["hydrobasins", "drop", "demo"],
+  ["hydrobasins", "drop", "reference"],
   ["osm", "field", "live"],
   ["border", "pin", "reference"],
   ["crops", "plans", "approx"],

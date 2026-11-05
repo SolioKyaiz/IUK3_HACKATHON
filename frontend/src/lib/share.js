@@ -36,10 +36,13 @@ export function yearRows(lang, saved) {
     rows: plan.by_year.map((r, i) => ({
       year: t("plans.year", { n: i + 1 }),
       crop: r.crop,
-      sow: t("saved.sow", { date: fmtDayMonth(lang, r.sow_date) }),
+      // Dates without a published source (and every date in plans saved before sources existed) say so.
+      sow: t(r.sow_cited ? "saved.sow" : "saved.sowEst", { date: fmtDayMonth(lang, r.sow_date) }),
       water: rainfed ? t("saved.short", { mm: r.deficit_mm }) : t("saved.m3", { m3: fmtNum(lang, r.water_m3) }),
     })),
     total: rainfed ? null : t("saved.total", { m3: fmtNum(lang, plan.water_m3_total) }),
+    note: t("saved.sowNote"),
+    demo: plan.by_year.some((r) => !r.sow_cited), // FAO-sourced dates are real reference data
   };
 }
 

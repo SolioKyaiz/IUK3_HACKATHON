@@ -36,6 +36,7 @@ class Crop:
     once_per_plan: bool
     water_verified: bool
     sow_mmdd: str
+    sow_source: str
 
 
 @lru_cache
@@ -48,7 +49,7 @@ def load_crops():
             ph_min=float(r["ph_min"]), ph_max=float(r["ph_max"]), income_index=float(r["income_index"]),
             heat_sensitivity=float(r["heat_sensitivity"]), drought_tolerance=float(r["drought_tolerance"]),
             soil_effect=float(r["soil_effect"]), once_per_plan=r["once_per_plan"] == "1",
-            water_verified=r["water_verified"] == "1", sow_mmdd=r["sow_mmdd"]) for r in csv.DictReader(f)}
+            water_verified=r["water_verified"] == "1", sow_mmdd=r["sow_mmdd"], sow_source=r["sow_source"]) for r in csv.DictReader(f)}
 
 
 @lru_cache
@@ -231,7 +232,7 @@ def by_year(plan, inp, ctx, rules):
     rows = []
     for cid in plan["years"]:
         mm = irrigation_mm(crops[cid], ctx["rain"], rules)
-        rows.append({"crop": cid, "sow_date": crops[cid].sow_mmdd,
+        rows.append({"crop": cid, "sow_date": crops[cid].sow_mmdd, "sow_cited": bool(crops[cid].sow_source),
                      "water_m3": round(mm * k) if inp["source"] != "none" else 0,
                      "deficit_mm": round(mm) if inp["source"] == "none" else 0})
     total = round(sum(irrigation_mm(crops[c], ctx["rain"], rules) for c in plan["years"]) * k)

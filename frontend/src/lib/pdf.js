@@ -56,7 +56,12 @@ export async function makePdf(lang, saved) {
   });
   doc.setFont("Noto", "normal"); doc.setFontSize(12);
   if (years?.total) { doc.setFont("Noto", "bold"); doc.text(years.total, 192, y - 2, { align: "right" }); doc.setFont("Noto", "normal"); y += 5; }
-  if (years) { doc.setFontSize(9); doc.setTextColor(90); doc.text(`${t("saved.sowNote")} (${t("app.demo")})`, 18, y); doc.setTextColor(0); doc.setFontSize(12); y += 5; }
+  if (years) {
+    doc.setFontSize(9); doc.setTextColor(90);
+    const note = doc.splitTextToSize(years.note + (years.demo ? ` (${t("app.demo")})` : ""), 174);
+    doc.text(note, 18, y); y += 4.5 * note.length + 0.5;
+    doc.setTextColor(0); doc.setFontSize(12);
+  }
   y += 4;
   const water = inputs.source === "none" ? t("plans.rainfed", { mm: plan.deficit_mm }) : t("plans.water", { m3: fmtNum(lang, plan.water_m3_year) });
   doc.text(doc.splitTextToSize(water, 170), 18, y); y += 8;
