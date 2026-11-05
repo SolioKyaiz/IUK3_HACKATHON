@@ -1,0 +1,23 @@
+name: Daily snow by basin
+
+on:
+  schedule:
+    - cron: "30 2 * * *"   # 08:30 Bishkek time
+  workflow_dispatch:
+
+jobs:
+  snow:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt earthengine-api
+      - run: python -m scripts.snow_job
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          EE_SERVICE_ACCOUNT_JSON: ${{ secrets.EE_SERVICE_ACCOUNT_JSON }}

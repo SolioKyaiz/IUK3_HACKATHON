@@ -9,4 +9,3 @@ __pycache__/
 # internal documents and design sources, not part of the site
 *.pdf
 images.png
-.github/workflows/
