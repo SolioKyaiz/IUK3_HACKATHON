@@ -75,6 +75,7 @@ export default function MapView() {
       <AttributionPrefix />
       <SavedPlots />
       <DraftLayer />
+      <HighlightLayer />
       <MapEvents />
       <FitController />
     </MapContainer>
@@ -128,18 +129,24 @@ function SnowLayer() {
   );
 }
 
+// Saved plan's plot, shown from the Saved plans screen.
+function HighlightLayer() {
+  const highlight = useStore((s) => s.highlight);
+  if (!highlight) return null;
+  return <Polygon positions={highlight} interactive={false}
+    pathOptions={{ color: "#f08c00", weight: 4, fillOpacity: 0.25, fillColor: "#ffd43b" }} />;
+}
+
 function SavedPlots() {
-  const { plots, draft, highlightPlotId } = useStore((s) => s);
+  const { plots, draft } = useStore((s) => s);
   const loc = useLocation();
   return plots
-    .filter((p) => p.id !== draft?.plotId || p.id === highlightPlotId)
+    .filter((p) => p.id !== draft?.plotId)
     .map((p) => (
       <Polygon
-        key={p.id + (p.id === highlightPlotId ? "h" : "")}
+        key={p.id}
         positions={fromGeoJSON(p.geometry)}
-        pathOptions={p.id === highlightPlotId
-          ? { color: "#f08c00", weight: 4, fillOpacity: 0.25, fillColor: "#ffd43b" }
-          : { color: "#495057", weight: 2, dashArray: "6 4", fillColor: "#868e96", fillOpacity: 0.12 }}
+        pathOptions={{ color: "#495057", weight: 2, dashArray: "6 4", fillColor: "#868e96", fillOpacity: 0.12 }}
         eventHandlers={{
           click: (e) => {
             L.DomEvent.stopPropagation(e);
@@ -180,7 +187,7 @@ function FitController() {
   }, [map]);
   useEffect(() => {
     if (first.current) { first.current = false; return; }
-    const geom = getState().draft?.geometry;
+    const geom = getState().highlight || getState().draft?.geometry;
     if (!geom) return;
     const id = setTimeout(() => {
       map.invalidateSize({ pan: false });

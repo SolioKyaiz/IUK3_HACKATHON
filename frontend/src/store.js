@@ -30,7 +30,7 @@ const initial = {
   assistantOpen: false,
   confirm: null,      // { text, onYes }
   toast: null,
-  highlightPlotId: null,
+  highlight: null,    // outline of a saved plan's plot shown on the map ([lat, lon] list); never edited
   fitRequest: 0,      // bump to ask the map to fit the selected plot
   liveGeometry: null, // plot outline while a corner is being dragged
 };

@@ -22,15 +22,12 @@ export default function SavedStep() {
     refreshSaved().then(() => setStatus(null)).catch((e) => setStatus(e.code));
   };
   useEffect(load, [token]);
-  useEffect(() => () => setState({ highlightPlotId: null }), []);
+  useEffect(() => () => setState({ highlight: null }), []);
 
+  // Only shows the plan's plot on the map: the plot being edited, its answers and plans stay as they are.
   const highlight = (row) => {
     if (!row.inputs.geometry) return;
-    setState({
-      highlightPlotId: row.plot_id,
-      draft: { geometry: fromGeoJSON(row.inputs.geometry), history: [], plotId: row.plot_id },
-      fitRequest: getState().fitRequest + 1,
-    });
+    setState({ highlight: fromGeoJSON(row.inputs.geometry), fitRequest: getState().fitRequest + 1 });
   };
 
   return (

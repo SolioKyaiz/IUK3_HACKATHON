@@ -65,18 +65,24 @@ function sameGeometry(a, b) {
 
 // Saves the draft as a new plot or updates the selected one. Returns the plot.
 export async function saveDraft() {
-  const { draft, plots } = getState();
+  const { draft, plots, plotId: prevPlotId } = getState();
   const geometry = toGeoJSON(draft.geometry);
-  let plot;
+  let plot, reshaped = false;
   if (draft.plotId) {
     const old = plots.find((p) => p.id === draft.plotId);
-    plot = old && sameGeometry(old.geometry, geometry) ? old : await api(`/plots/${draft.plotId}`, { method: "PATCH", body: { geometry } });
+    reshaped = !(old && sameGeometry(old.geometry, geometry));
+    plot = reshaped ? await api(`/plots/${draft.plotId}`, { method: "PATCH", body: { geometry } }) : old;
   } else {
     plot = await api("/plots", { method: "POST", body: { name: t("plot.defaultName", { n: plots.length + 1 }), geometry } });
   }
   const others = getState().plots.filter((p) => p.id !== plot.id);
   setState({ plots: [...others, plot].sort((a, b) => a.id - b.id), plotId: plot.id, draft: { ...draft, plotId: plot.id } });
-  if (!draft.plotId) setState({ answers: {}, priority: null, plans: null, shown: [] });
+  // A different plot than the selected one (or a new plot): its own answers, never the previous plot's.
+  if (plot.id !== prevPlotId) {
+    setState({ answers: { ...plot.answers }, priority: plot.answers?.priority || null, plans: null, shown: [] });
+  } else if (reshaped) {
+    setState({ plans: null, shown: [] }); // water volumes depend on the area: plans must be recalculated
+  }
   return plot;
 }
 
@@ -85,8 +91,13 @@ export async function renamePlot(plot, name) {
   setState((s) => ({ plots: s.plots.map((p) => (p.id === plot.id ? updated : p)) }));
 }
 
+// DELETE that finds nothing (already deleted, e.g. on another phone) still counts as done.
+async function deleteGone(path) {
+  try { await api(path, { method: "DELETE" }); } catch (e) { if (e.status !== 404) throw e; }
+}
+
 export async function deletePlot(plot) {
-  await api(`/plots/${plot.id}`, { method: "DELETE" });
+  await deleteGone(`/plots/${plot.id}`);
   setState((s) => ({
     plots: s.plots.filter((p) => p.id !== plot.id),
     ...(s.plotId === plot.id ? { plotId: null, draft: null, answers: {}, priority: null, plans: null, shown: [] } : {}),
@@ -132,7 +143,7 @@ export async function savePlan(plan, index) {
 }
 
 export async function deleteSaved(row) {
-  await api(`/saved-plans/${row.id}`, { method: "DELETE" });
+  await deleteGone(`/saved-plans/${row.id}`);
   setState((s) => ({ saved: s.saved.filter((x) => x.id !== row.id) }));
 }
 

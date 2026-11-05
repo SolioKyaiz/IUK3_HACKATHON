@@ -86,8 +86,11 @@ export function planText(lang, saved) {
   return lines.join("\n");
 }
 
+// The address the app is served from, so shared links never point at a domain we don't own.
+const SITE = globalThis.location?.origin?.startsWith("http") ? globalThis.location.origin : "https://suuplan.onrender.com";
+
 export function telegramUrl(text) {
-  return `https://t.me/share/url?url=${encodeURIComponent("https://suuplan.app")}&text=${encodeURIComponent(text)}`;
+  return `https://t.me/share/url?url=${encodeURIComponent(SITE)}&text=${encodeURIComponent(text)}`;
 }
 
 export function whatsappUrl(text) {

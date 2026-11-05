@@ -8,7 +8,9 @@ const DICTS = { ky, ru, en };
 export const LANGS = [["ky", "KG"], ["ru", "RU"], ["en", "EN"]];
 
 export function translate(lang, key, params) {
-  let s = DICTS[lang]?.[key] ?? DICTS.ru[key] ?? key;
+  // An error code without its own text (e.g. a new API code) reads "Something went wrong", never the raw key.
+  const fallback = key.startsWith("err.") ? DICTS[lang]?.["err.unknown"] : undefined;
+  let s = DICTS[lang]?.[key] ?? DICTS.ru[key] ?? fallback ?? key;
   if (params) for (const [k, v] of Object.entries(params)) s = s.replaceAll(`{${k}}`, v);
   return s;
 }
