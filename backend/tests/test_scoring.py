@@ -122,3 +122,50 @@ def test_by_year_rows_add_up():
 def test_every_basin_names_its_mountains():
     from suuplan.geo import basins
     assert all(b["mountains"] and set(b["mountains"]) == {"en", "ru", "ky"} for b in basins())
+
+
+def test_delivery_estimate_losses_and_cap():
+    from suuplan import delivery
+    rules = scoring.load_rules()
+    d = delivery.estimate(42.83, 74.55, 5.0, "medium", "chui", rules)  # Chui valley: more farmland than river water
+    assert d["pressure_pct"] > 100 and d["per_ha_m3"] < d["avg_ha_m3"]
+    assert d["intake_m3"] > d["gate_m3"] > d["useful_m3"] > 0
+    assert d["useful_m3"] == round(d["gate_m3"] * rules["field_efficiency"])
+    assert abs(d["basin_need_m3"] / d["river_m3"] * 100 - d["pressure_pct"]) < 1
+    sandy = delivery.estimate(42.83, 74.55, 5.0, "sandy", "chui", rules)
+    assert sandy["canal_eff"] < d["canal_eff"]  # leakier canal bed
+    assert delivery.estimate(42.83, 74.55, 5.0, "medium", "nowhere", rules) is None
+
+
+def test_short_delivery_overrides_enough_answer():
+    tight = {**CTX, "delivery": {"useful_m3": 100}}  # far less than any plan needs
+    plain = scoring.make_plans(inp(water="enough"), CTX)["plans"]
+    short = scoring.make_plans(inp(water="enough"), tight)["plans"]
+    assert all(p["supply"]["level"] == "often" for p in short)
+    assert all(any(r["code"] == "delivery_short" for r in p["reasons"]) for p in short)
+    assert [p["total"] for p in short] != [p["total"] for p in plain]
+    assert all(p["supply"] is None for p in scoring.make_plans(inp(source="well"), tight)["plans"])
+
+
+def test_plenty_of_delivery_keeps_farmer_answer():
+    rich = {**CTX, "delivery": {"useful_m3": 10**9}}
+    a = scoring.make_plans(inp(water="often"), CTX)["plans"]
+    b = scoring.make_plans(inp(water="often"), rich)["plans"]
+    assert [p["total"] for p in a] == [p["total"] for p in b]
+
+
+def test_every_district_found():
+    from suuplan.geo import district_for_point, districts
+    assert len(districts()) == 41 and len({d["id"] for d in districts()}) == 41
+    assert district_for_point(42.87, 74.59)["region"] == "chui"  # Bishkek, a gap in the district map
+    assert district_for_point(40.53, 72.80)["region"] == "osh"
+
+
+def test_supply_per_year_follows_each_crop():
+    d = {"useful_m3": 9000}
+    plan = scoring.make_plans(inp(), {**CTX, "delivery": d})["plans"][0]
+    for r in plan["by_year"]:
+        assert r["supply_pct"] == min(999, round(d["useful_m3"] / r["water_m3"] * 100)) if r["water_m3"] else 999
+        assert r["supply_level"] in scoring.WATER
+    well = scoring.make_plans(inp(source="well"), {**CTX, "delivery": d})["plans"][0]
+    assert all("supply_pct" not in r for r in well["by_year"])

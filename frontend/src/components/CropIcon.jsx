@@ -1,4 +1,4 @@
-// Flat crop pictures drawn for SuuPlan, one consistent style (48×48, 2–3 colours each).
+// Flat crop pictures drawn for ISEED, one consistent style (48×48, 2–3 colours each).
 const GRAIN = "#E8B33A", GRAIN_DARK = "#B7791F";
 const LEAF = "#4CAF50", LEAF_DARK = "#2E7D32";
 

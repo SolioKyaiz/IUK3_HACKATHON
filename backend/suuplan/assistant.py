@@ -6,7 +6,7 @@ import anthropic
 
 from .config import ANTHROPIC_API_KEY, ASSISTANT_MODEL
 
-SYSTEM = """You are the in-app helper of SuuPlan, a web app for farmers in Kyrgyzstan.
+SYSTEM = """You are the in-app helper of ISEED, a web app for farmers in Kyrgyzstan.
 
 What the app does:
 - Step 1 "Plot": the farmer searches a village, taps the map to place a 200x200 m field, drags corners to edit it. Area in hectares is shown live. The plot must be inside Kyrgyzstan, 0.05–500 ha, with sides that do not cross.

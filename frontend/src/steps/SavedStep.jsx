@@ -5,7 +5,7 @@ import { useT, fmtNum, fmtDate } from "../i18n";
 import Step from "../components/Step";
 import Icon, { PdfLogo, TelegramLogo, WhatsAppLogo } from "../components/Icons";
 import { confirmThen, deleteSaved, refreshSaved } from "../lib/actions";
-import { naturalLines, planText, sourceLines, telegramUrl, whatsappUrl, yearRows } from "../lib/share";
+import { deliveryLines, naturalLines, planText, sourceLines, telegramUrl, whatsappUrl, yearRows } from "../lib/share";
 import { fromGeoJSON } from "../lib/geo";
 import { InstallButton } from "../components/Install";
 import CropIcon from "../components/CropIcon";
@@ -51,6 +51,23 @@ export default function SavedStep() {
   );
 }
 
+// Numbers with their units in bold ("≈20 409 м³", "146%", "4,5 км"), so the water figures stand out.
+// Thousands separators may be regular, non-breaking or narrow spaces depending on the language.
+// A number followed by a word is a date ("~1 апр.", "1-апрель") and stays plain.
+const NUM = /(?:[≈~]\s?)?\d+(?:[ \u00A0\u202F]\d{3})*(?:[.,]\d+)?(?:\s?(?:млн м³|million m³|м³|m³|га|ha|км|km|мм|mm)|%|(?![\s\u00A0-]?[A-Za-zА-Яа-яЁёӨөҮүҢң]))/g;
+
+function BoldNumbers({ text }) {
+  const parts = [];
+  let last = 0;
+  for (const m of text.matchAll(NUM)) {
+    if (m.index > last) parts.push(text.slice(last, m.index));
+    parts.push(<b key={m.index}>{m[0]}</b>);
+    last = m.index + m[0].length;
+  }
+  parts.push(text.slice(last));
+  return <span>{parts}</span>;
+}
+
 function SavedCard({ row, onFocus }) {
   const t = useT();
   const [copied, setCopied] = useState(false);
@@ -60,6 +77,7 @@ function SavedCard({ row, onFocus }) {
   const natural = naturalLines(t.lang, row);
   const years = yearRows(t.lang, row);
   const sources = sourceLines(t.lang, row);
+  const delivery = deliveryLines(t.lang, row);
 
   const pdf = async () => {
     setPdfBusy(true);
@@ -95,8 +113,9 @@ function SavedCard({ row, onFocus }) {
               <div key={r.year} className="saved-year">
                 <span className="muted">{r.year}</span>
                 <span className="saved-year-crop"><CropIcon id={r.crop} size={20} /> {t(`crop.${r.crop}`)}</span>
-                <span className="muted">{r.sow}</span>
+                <span className="muted saved-year-sow">{r.sow}</span>
                 <span className="saved-year-water">{r.water}</span>
+                {r.reach && <span className={`saved-year-reach ${r.reachLevel}`}>{r.reach}</span>}
               </div>
             ))}
             {years.total && <div className="saved-year-total">{years.total}</div>}
@@ -106,16 +125,27 @@ function SavedCard({ row, onFocus }) {
         <div className="saved-source">
           {sources.map((l) => (
             <div key={l.key} className="saved-natural-line">
-              <Icon name={l.key === "mountains" ? "snow" : "pin"} size={15} /> <span>{l.text}</span>
+              <Icon name={{ mountains: "snow", intake: "drop", basin: "field" }[l.key] || "pin"} size={15} /> <BoldNumbers text={l.text} />
               {l.demo && <span className="pill demo">{t("app.demo")}</span>}
             </div>
           ))}
         </div>
+        {delivery.length > 0 && (
+          <div className="saved-natural">
+            {delivery.map((l) => (
+              <div key={l.key} className="saved-natural-line">
+                <Icon name="drop" size={15} /> <BoldNumbers text={l.text} />
+                {l.demo && <span className="pill demo">{t("app.demo")}</span>}
+              </div>
+            ))}
+            <p className="muted tiny">{t("saved.reachNote")}</p>
+          </div>
+        )}
         {natural.length > 0 && (
           <div className="saved-natural">
             {natural.map((l) => (
               <div key={l.key} className="saved-natural-line">
-                <Icon name={l.key === "rain" ? "drop" : "sprout"} size={15} /> <span>{l.text}</span>
+                <Icon name={l.key === "rain" ? "drop" : "sprout"} size={15} /> <BoldNumbers text={l.text} />
                 {l.demo && <span className="pill demo">{t("app.demo")}</span>}
               </div>
             ))}
@@ -137,7 +167,7 @@ function SavedCard({ row, onFocus }) {
           <Icon name={copied ? "check" : "copy"} size={20} />
         </button>
         {navigator.share && (
-          <button className="share-btn plain mobile-only" onClick={() => navigator.share({ title: "SuuPlan", text: text() }).catch(() => {})}
+          <button className="share-btn plain mobile-only" onClick={() => navigator.share({ title: "ISEED", text: text() }).catch(() => {})}
             aria-label={t("saved.share")} title={t("saved.share")}>
             <Icon name="share" size={20} />
           </button>

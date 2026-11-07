@@ -27,5 +27,12 @@
   "soil_porosity": {"sandy": 0.437, "medium": 0.463, "clay": 0.475},
   "soil_field_capacity": {"sandy": 0.12, "medium": 0.25, "clay": 0.36},
   "soil_wilting_point": {"sandy": 0.045, "medium": 0.12, "clay": 0.22},
-  "sowing_window_days": 3
+  "sowing_window_days": 3,
+  "_delivery_comment": "Water reaching the field (suuplan/delivery.py). national_irrigation_m3: water used for irrigation in 2024, Water Resources Service of Kyrgyzstan (6.19 billion m3), spread over all farmland seen by ESA WorldCereal. kostyakov: canal seepage loss sigma = A / Q^m % per km (A. N. Kostyakov; A, m for high / medium / low permeability soils). canal_flow_m3s: assumed flow of the farm canal. field_efficiency: surface (furrow) irrigation, FAO Irrigation Water Management Training Manual 4 (Brouwer et al. 1989). delivery_levels: useful water / plan need at or above which the computed supply counts as 'enough' or 'sometimes short'; below that it is 'often short'.",
+  "delivery_sources": ["river", "reservoir"],
+  "national_irrigation_m3": 6190000000,
+  "kostyakov": {"sandy": {"A": 3.4, "m": 0.5}, "medium": {"A": 1.9, "m": 0.4}, "clay": {"A": 0.7, "m": 0.3}},
+  "canal_flow_m3s": 1.0,
+  "field_efficiency": 0.6,
+  "delivery_levels": {"enough": 1.0, "sometimes": 0.7}
 }

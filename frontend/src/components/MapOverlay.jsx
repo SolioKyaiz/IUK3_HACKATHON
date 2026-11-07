@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { NavLink } from "react-router-dom";
 import { getState, setState, useStore, logout, toast } from "../store";
 import { useT, LANGS, fmtDate } from "../i18n";
 import { mapRef, loadSnow, basinAt, SNOW_COLORS } from "./MapView";
 import SearchBox from "./SearchBox";
 import { inKyrgyzstan } from "../lib/geo";
+import { MENU } from "../lib/menu";
 import Icon from "./Icons";
 
 export default function MapOverlay({ mode }) {
@@ -78,6 +80,8 @@ function CompactProfile() {
       {open && (
         <div className="menu-pop right" role="menu">
           <LangSwitch />
+          {/* Phones have no side menu: the pages are listed here. */}
+          {MENU.map(([to, , key]) => <NavLink key={to} to={to} role="menuitem" onClick={() => setOpen(false)}>{t(key)}</NavLink>)}
           {token
             ? <><div className="muted">{phone}</div><button onClick={() => { setOpen(false); logout(); }}>{t("auth.logout")}</button></>
             : <button onClick={() => { setOpen(false); setState({ loginOpen: true, loginThen: null }); }}>{t("auth.login")}</button>}

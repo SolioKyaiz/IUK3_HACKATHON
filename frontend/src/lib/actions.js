@@ -134,7 +134,7 @@ export async function savePlan(plan, index) {
     plotName: plot?.name, area_ha: plot?.area_ha, geometry: plot?.geometry,
     snow: ctx.snow, snowUsed: plans.snow_used, basin: ctx.basin,
     climate: { ffd: ctx.ffd, rain: ctx.rain, heat: ctx.heat, source: ctx.climate_source },
-    soilData: ctx.soil,
+    soilData: ctx.soil, delivery: ctx.delivery,
     demo: Boolean(ctx.snow?.demo || ctx.basin?.source === "demo" || ctx.climate_source !== "NASA POWER"),
   };
   const row = await api("/saved-plans", { method: "POST", body: { plot_id: plotId, plan, inputs } });

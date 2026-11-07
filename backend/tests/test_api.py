@@ -94,3 +94,10 @@ def test_snow_seed_fills_basins_without_rows(client):
         db.commit()
         snow.seed_demo(db)
         assert set(db.scalars(select(SnowDaily.basin_id).distinct())) >= {b["id"] for b in basins()}
+
+
+def test_agronomists(client):
+    r = client.get("/agronomists", params={"lat": 42.89, "lon": 74.85}).json()
+    assert len(r["districts"]) == 41 and r["here"] in {d["id"] for d in r["districts"]}
+    assert all({"phone", "telegram", "contact_name", "source"} <= set(d) for d in r["districts"])
+    assert client.get("/agronomists").json()["here"] is None

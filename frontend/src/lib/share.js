@@ -25,8 +25,8 @@ export function naturalLines(lang, saved) {
   return out;
 }
 
-// Per-year rows (crop, typical sowing date, water for the whole plot) and the 3-year total.
-// Null for plans saved before the breakdown existed.
+// Per-year rows (crop, typical sowing date, water for the whole plot, and for rivers and reservoirs the share
+// of that season's need that reaches the field) and the 3-year total. Null for plans saved before the breakdown existed.
 export function yearRows(lang, saved) {
   const t = (k, p) => translate(lang, k, p);
   const { plan, inputs } = saved;
@@ -39,6 +39,8 @@ export function yearRows(lang, saved) {
       // Dates without a published source (and every date in plans saved before sources existed) say so.
       sow: t(r.sow_cited ? "saved.sow" : "saved.sowEst", { date: fmtDayMonth(lang, r.sow_date) }),
       water: rainfed ? t("saved.short", { mm: r.deficit_mm }) : t("saved.m3", { m3: fmtNum(lang, r.water_m3) }),
+      reach: r.supply_pct != null ? t("saved.yearReach", { pct: r.supply_pct }) : null,
+      reachLevel: r.supply_level,
     })),
     total: rainfed ? null : t("saved.total", { m3: fmtNum(lang, plan.water_m3_total) }),
     note: t("saved.sowNote"),
@@ -46,7 +48,23 @@ export function yearRows(lang, saved) {
   };
 }
 
-// Where the water comes from: the farmer's source, plus basin and feeding mountains for rivers and reservoirs.
+// Right under the river: what this field needs from the river (the plan's need plus canal and field losses)
+// and what all the basin's farmland needs against what the river brings. Estimates, so marked demo.
+function basinWaterLines(lang, saved) {
+  const t = (k, p) => translate(lang, k, p);
+  const d = saved.inputs.delivery, sup = saved.plan.supply;
+  if (!d || !sup || d.river_m3 == null) return [];
+  const mln = (x) => fmtNum(lang, x / 1e6, x < 1e7 ? 1 : 0);
+  let basin = t("saved.basinNeed", { ha: fmtNum(lang, d.farmland_ha), need: mln(d.basin_need_m3), river: mln(d.river_m3), pct: d.pressure_pct });
+  if (d.pressure_pct > 100) basin += t("saved.basinShort", { share: Math.round((d.per_ha_m3 / d.avg_ha_m3) * 100) });
+  return [
+    { key: "intake", text: t("saved.intake", { m3: fmtNum(lang, Math.round(sup.need_m3 / (d.canal_eff * d.field_eff))) }), demo: true },
+    { key: "basin", text: basin, demo: true },
+  ];
+}
+
+// Where the water comes from: the farmer's source, plus for rivers and reservoirs the basin, the water needed
+// from it and its feeding mountains.
 export function sourceLines(lang, saved) {
   const t = (k, p) => translate(lang, k, p);
   const { source, basin } = saved.inputs;
@@ -54,9 +72,22 @@ export function sourceLines(lang, saved) {
   const demo = basin?.source === "demo";
   if (source !== "river" && source !== "reservoir") return [{ key: "from", text: t(`saved.from.${source}`), demo: false }];
   if (!basin) return [{ key: "from", text: t(`source.${source}`), demo: false }];
-  const out = [{ key: "from", text: t(`saved.from.${source}`, { basin: name(basin.name) }), demo }];
+  const out = [{ key: "from", text: t(`saved.from.${source}`, { basin: name(basin.name) }), demo }, ...basinWaterLines(lang, saved)];
   if (basin.mountains) out.push({ key: "mountains", text: t("saved.mountains", { mountains: name(basin.mountains) }), demo });
   return out;
+}
+
+// Water that realistically reaches the field (rivers and reservoirs): what arrives, and canal and field losses.
+// An estimate, so always marked demo. Older saved plans have none.
+export function deliveryLines(lang, saved) {
+  const t = (k, p) => translate(lang, k, p);
+  const d = saved.inputs.delivery, sup = saved.plan.supply;
+  if (!d || !sup) return [];
+  const n = (x) => fmtNum(lang, x);
+  return [
+    { key: "reach", text: t("saved.reach", { m3: n(d.useful_m3), pct: Math.min(999, Math.round(sup.ratio * 100)) }) },
+    { key: "canal", text: t("saved.canal", { km: fmtNum(lang, d.river_km, 1), loss: Math.round((1 - d.canal_eff) * 100), field: Math.round((1 - d.field_eff) * 100) }) },
+  ].map((l) => ({ ...l, demo: true }));
 }
 
 // Plain-text version of a saved plan, used for copy, Telegram, WhatsApp and Web Share.
@@ -67,13 +98,14 @@ export function planText(lang, saved) {
   lines.push(t("share.plot", { name: inputs.plotName, area: fmtNum(lang, inputs.area_ha, 2) }));
   const years = yearRows(lang, saved);
   if (years) {
-    years.rows.forEach((r) => lines.push(`${r.year}: ${t(`crop.${r.crop}`)}, ${r.sow}, ${r.water}`));
+    years.rows.forEach((r) => lines.push(`${r.year}: ${t(`crop.${r.crop}`)}, ${r.sow}, ${r.water}${r.reach ? `, ${r.reach}` : ""}`));
     if (years.total) lines.push(years.total);
   } else {
     plan.years.forEach((c, i) => lines.push(`${t("plans.year", { n: i + 1 })}: ${t(`crop.${c}`)}`));
     if (inputs.source !== "none") lines.push(t("share.water", { m3: fmtNum(lang, plan.water_m3_year) }));
   }
   sourceLines(lang, saved).forEach((l) => lines.push(l.text));
+  deliveryLines(lang, saved).forEach((l) => lines.push(l.text));
   const natural = naturalLines(lang, saved);
   natural.forEach((l) => lines.push(l.text));
   if (natural.length) lines.push(t("saved.naturalNote"));

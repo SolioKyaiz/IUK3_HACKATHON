@@ -1,8 +1,10 @@
+import csv
 import re
 import time
 from collections import defaultdict, deque
 from contextlib import asynccontextmanager
 from datetime import date, datetime, timedelta, timezone
+from functools import lru_cache
 
 import jwt
 from fastapi import Depends, FastAPI, Header, Request
@@ -13,11 +15,11 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from . import assistant, climate, places, scoring, snow
-from .config import (ASSISTANT_DAILY_LIMIT, ASSISTANT_MAX_CHARS, CORS_ORIGINS, DEMO_OTP_CODE, JWT_DAYS,
+from . import assistant, climate, delivery, places, scoring, snow
+from .config import (ASSISTANT_DAILY_LIMIT, ASSISTANT_MAX_CHARS, CORS_ORIGINS, DATA_DIR, DEMO_OTP_CODE, JWT_DAYS,
                      JWT_SECRET)
 from .db import Plot, PlotAnswers, SavedPlan, SessionLocal, User, get_db, init_db
-from .geo import basin_for_point, centroid, validate_plot
+from .geo import basin_for_point, centroid, district_for_point, districts, validate_plot
 
 PHONE_RE = re.compile(r"^\+996\d{9}$")
 
@@ -36,7 +38,7 @@ async def lifespan(app):
     yield
 
 
-app = FastAPI(title="SuuPlan API", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="ISEED API", version="0.1.0", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=CORS_ORIGINS, allow_methods=["*"],
                    allow_headers=["Authorization", "Content-Type"])
 
@@ -149,6 +151,23 @@ async def get_geocode(q: str, db: Session = Depends(get_db)):
         raise ApiError(502, "geocode_unavailable")
 
 
+# ---------- agronomists ----------
+@lru_cache
+def agronomist_contacts():
+    """District agriculture contacts from data/agronomists.csv (empty until a verified contact is added)."""
+    with open(DATA_DIR / "agronomists.csv", encoding="utf-8") as f:
+        return {r["district_id"]: {k: r[k] for k in ("contact_name", "phone", "telegram", "source")} for r in csv.DictReader(f)}
+
+
+@app.get("/agronomists")
+def get_agronomists(lat: float | None = None, lon: float | None = None):
+    """Every district with its contact; with lat/lon also the district of that point."""
+    contacts = agronomist_contacts()
+    here = district_for_point(lat, lon)["id"] if lat is not None and lon is not None else None
+    return {"here": here, "districts": [{"id": d["id"], "region": d["region"], "name": d["name"], **contacts.get(d["id"], {})}
+                                        for d in districts()]}
+
+
 # ---------- plots ----------
 class PlotIn(BaseModel):
     name: str = Field(default="", max_length=80)
@@ -247,10 +266,13 @@ def plot_context(db, p, soil_answer=None):
         soil = climate.get_soil(db, lat, lon)
     b = basin_for_point(lat, lon)
     s = snow.latest(db).get(b["id"], {"label": "normal", "date": None, "demo": True, "anomaly": None})
+    d = district_for_point(lat, lon)
     return {"ffd": clim["ffd"], "rain": clim["rain"], "heat": clim["heat"], "climate_source": clim["source"],
             "gwet": clim.get("gwet"),
             "soil": soil, "basin": {"id": b["id"], "name": b["name"], "mountains": b["mountains"], "source": b["source"]},
-            "snow": s, "area_ha": p.area_ha}
+            "snow": s, "area_ha": p.area_ha,
+            "delivery": delivery.estimate(lat, lon, p.area_ha, soil["texture"], b["id"], scoring.load_rules()),
+            "district": d and {"id": d["id"], "name": d["name"], "region": d["region"]}}
 
 
 def public_context(ctx):

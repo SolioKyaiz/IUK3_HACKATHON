@@ -21,7 +21,7 @@ out body;
 
 def main():
     r = httpx.post("https://overpass-api.de/api/interpreter", data={"data": QUERY}, timeout=200,
-                   headers={"User-Agent": "SuuPlan/0.1 (places import)"})
+                   headers={"User-Agent": "ISEED/0.1 (places import)"})
     r.raise_for_status()
     rows = []
     for el in r.json()["elements"]:

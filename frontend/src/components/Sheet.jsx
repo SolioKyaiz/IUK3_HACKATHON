@@ -8,7 +8,7 @@ import { useT } from "../i18n";
 // or pull down when the content is scrolled to the top.
 export const SNAPS = { collapsed: 0.15, half: 0.5, full: 0.9 };
 const ORDER = ["collapsed", "half", "full"];
-const DEFAULT_SNAP = { "/plot": "collapsed", "/field": "half", "/priority": "half", "/plans": "full", "/saved": "full", "/data": "full" };
+const DEFAULT_SNAP = { "/plot": "collapsed", "/field": "half", "/priority": "half", "/plans": "full", "/saved": "full", "/agronomist": "full", "/data": "full" };
 
 export const SheetContext = createContext({ snap: "full", setSnap: () => {} });
 export const useSheet = () => useContext(SheetContext);

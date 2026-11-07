@@ -109,3 +109,17 @@ def basin_for_point(lat, lon):
 def basin_feature(b):
     return {"type": "Feature", "properties": {"id": b["id"], "name": b["name"], "source": b["source"]},
             "geometry": mapping(b["geom"])}
+
+
+@lru_cache
+def districts():
+    """41 districts (geoBoundaries ADM2, built by scripts/build_districts.py)."""
+    with open(DATA_DIR / "districts_kg.geojson", encoding="utf-8") as f:
+        fc = json.load(f)
+    return [{**ft["properties"], "geom": shape(ft["geometry"])} for ft in fc["features"]]
+
+
+def district_for_point(lat, lon):
+    """The district containing the point; the nearest one for points in gaps (Bishkek, Osh city, border)."""
+    p = Point(lon, lat)
+    return min(districts(), key=lambda d: 0 if d["geom"].contains(p) else d["geom"].distance(p))

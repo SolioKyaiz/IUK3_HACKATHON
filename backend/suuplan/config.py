@@ -21,7 +21,7 @@ ASSISTANT_DAILY_LIMIT = 30
 ASSISTANT_MAX_CHARS = 500
 
 NOMINATIM_URL = os.getenv("NOMINATIM_URL", "https://nominatim.openstreetmap.org/search")
-NOMINATIM_USER_AGENT = os.getenv("NOMINATIM_USER_AGENT", "SuuPlan/0.1 (NASA Space Apps 2026 demo)")
+NOMINATIM_USER_AGENT = os.getenv("NOMINATIM_USER_AGENT", "ISEED/0.1 (NASA Space Apps 2026 demo)")
 
 # External data lookups can be switched off for tests or offline demos.
 EXTERNAL_DATA = os.getenv("SUUPLAN_EXTERNAL_DATA", "1") == "1"

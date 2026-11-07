@@ -1,4 +1,4 @@
-"""SuuPlan rules engine. Deterministic: same input -> same plans. No AI involved.
+"""ISEED rules engine. Deterministic: same input -> same plans. No AI involved.
 
 Crop values live in data/crops.csv and parameters in data/rules.json, so an agronomist
 can change them without touching code.
@@ -74,6 +74,12 @@ def snow_applies(source, rules):
     return source in rules["snow_sources"]
 
 
+def delivery_level(ratio, rules):
+    """Useful water reaching the field / plan need -> the same levels the farmer answers with."""
+    lv = rules["delivery_levels"]
+    return "enough" if ratio >= lv["enough"] else "sometimes" if ratio >= lv["sometimes"] else "often"
+
+
 def irrigation_mm(crop, rain, rules):
     return max(0.0, crop.water_need_mm - rules["effective_rain_share"] * rain)
 
@@ -118,6 +124,19 @@ def score_plan(seq, inp, ctx, rules):
 
     irr = [irrigation_mm(c, ctx["rain"], rules) for c in cs]
     water = clamp(100 - 100 * mean(irr) / rules["water_score_zero_at_mm"])
+    area = ctx["area_ha"]
+
+    # Water that realistically reaches the field (delivery.py) vs. what this plan needs on average.
+    # When it is worse than the farmer's answer, the engine uses it.
+    supply = None
+    d = ctx.get("delivery")
+    if d and inp["source"] in rules["delivery_sources"]:
+        need = mean(irr) * rules["m3_per_mm_ha"] * area
+        ratio = d["useful_m3"] / need if need else 9.99
+        level = delivery_level(ratio, rules)
+        supply = {"ratio": round(min(ratio, 9.99), 2), "level": level, "need_m3": round(need)}
+        if WATER.index(level) > WATER.index(short):
+            short = level
 
     suit = []
     for c in cs:
@@ -152,7 +171,6 @@ def score_plan(seq, inp, ctx, rules):
     m = rules["snow_multiplier"][snow_label] * rules["shortage_multiplier"][short]
     total = (w["a"] * m * water + w["b"] * soil + w["c"] * income + w["d"] * (100 - risk)) / (w["a"] * m + w["b"] + w["c"] + w["d"])
 
-    area = ctx["area_ha"]
     m3 = round(mean(irr) * rules["m3_per_mm_ha"] * area) if inp["source"] != "none" else 0
     return {
         "key": plan_key(seq), "years": list(seq),
@@ -160,6 +178,7 @@ def score_plan(seq, inp, ctx, rules):
         "total": round(total, 2),
         "water_m3_year": m3,
         "deficit_mm": round(mean(irr)) if inp["source"] == "none" else 0,
+        "supply": supply,
     }
 
 
@@ -189,6 +208,10 @@ def reasons_for(plan, inp, ctx, rules):
         out.append({"code": "high_water", "params": {"m3": plan["water_m3_year"]}})
     if s["risk"] >= 55:
         out.append({"code": "high_risk", "params": {}})
+    # Last: the card already shows how much water reaches the field right under the water line.
+    sup = plan.get("supply")
+    if sup and WATER.index(sup["level"]) > WATER.index(inp["water"]):
+        out.append({"code": "delivery_short", "params": {"pct": round(sup["ratio"] * 100)}})
     if not out:
         out.append({"code": "balanced", "params": {}})
     # Lead with what matters for the chosen priority.
@@ -226,15 +249,22 @@ def natural_water(plan, ctx, rules):
 
 
 def by_year(plan, inp, ctx, rules):
-    """Per-year crop, typical sowing date and water for the whole plot (irrigation m³, or rain shortfall mm)."""
+    """Per-year crop, typical sowing date and water for the whole plot (irrigation m³, or rain shortfall mm),
+    plus, for rivers and reservoirs, how much of that year's need reaches the field (supply_pct, supply_level)."""
     crops = load_crops()
     k = rules["m3_per_mm_ha"] * ctx["area_ha"]
+    d = ctx.get("delivery") if inp["source"] in rules["delivery_sources"] else None
     rows = []
     for cid in plan["years"]:
         mm = irrigation_mm(crops[cid], ctx["rain"], rules)
-        rows.append({"crop": cid, "sow_date": crops[cid].sow_mmdd, "sow_cited": bool(crops[cid].sow_source),
-                     "water_m3": round(mm * k) if inp["source"] != "none" else 0,
-                     "deficit_mm": round(mm) if inp["source"] == "none" else 0})
+        row = {"crop": cid, "sow_date": crops[cid].sow_mmdd, "sow_cited": bool(crops[cid].sow_source),
+               "water_m3": round(mm * k) if inp["source"] != "none" else 0,
+               "deficit_mm": round(mm) if inp["source"] == "none" else 0}
+        if d:
+            ratio = d["useful_m3"] / (mm * k) if mm > 0 else 9.99
+            row["supply_pct"] = min(999, round(ratio * 100))
+            row["supply_level"] = delivery_level(ratio, rules)
+        rows.append(row)
     total = round(sum(irrigation_mm(crops[c], ctx["rain"], rules) for c in plan["years"]) * k)
     return rows, total if inp["source"] != "none" else 0
 
@@ -253,7 +283,7 @@ def make_plans(inp, ctx):
     """Step 4: pick the best 3 plans that are different enough from each other and from `exclude`.
 
     inp: prev, source, water, soil, priority, exclude
-    ctx: ffd, rain, heat, soil{texture, ph}, snow{label}, area_ha
+    ctx: ffd, rain, heat, soil{texture, ph}, snow{label}, area_ha, optional gwet and delivery
     """
     rules = load_rules()
     crops, excluded = filter_crops(ctx, rules)

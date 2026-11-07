@@ -1,4 +1,4 @@
-/* SuuPlan design system — «Луг» theme.
+/* ISEED design system — «Луг» theme.
    Brand green #0B7A3E, Nunito, light and dark follow the system setting.
    Scales: spacing 4/8/12/16/24/32, type 12/14/16/18/20/24, radius 8/12/16. */
 
@@ -259,7 +259,7 @@ p { margin: 0; }
 .map-chip.seg button.on { background: var(--cta); color: var(--cta-ink); box-shadow: none; }
 .btn-login { background: var(--cta); color: var(--cta-ink); }
 
-.map-top { position: absolute; top: calc(16px + var(--safe-top)); left: 16px; right: 16px; z-index: 1000; display: flex; gap: 8px; pointer-events: none; }
+.map-top { position: absolute; top: calc(16px + var(--safe-top)); left: 16px; right: 16px; z-index: 1001; /* its menu opens over the map buttons */ display: flex; gap: 8px; pointer-events: none; }
 .map-top > * { pointer-events: auto; }
 .map-top:not(.mobile) { display: none; }
 .map-top-right { position: absolute; top: 16px; right: 16px; z-index: 1000; display: flex; gap: 8px; }
@@ -460,15 +460,23 @@ p { margin: 0; }
 .saved-water { color: var(--text); font-weight: 700; }
 .saved-water .icon { color: var(--water); }
 .saved-years { display: flex; flex-direction: column; gap: 2px; padding: 8px 0; border-block: 1px solid var(--line); font-size: var(--fs-sm); }
-.saved-year { display: grid; grid-template-columns: auto 1fr auto auto; gap: 4px 10px; align-items: center; }
-.saved-year-crop { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; min-width: 0; }
-.saved-year-water { font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+/* Season, crop and water on the first line; the sowing date under the crop and the share of water
+   reaching the field under the water (one line doesn't fit a phone or the side panel). */
+.saved-year { display: grid; grid-template-columns: auto auto 1fr auto; column-gap: 10px; align-items: center; padding: 2px 0; }
+.saved-year-sow { grid-column: 2 / 4; grid-row: 2; font-size: var(--fs-xs); }
+.saved-year-crop { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; }
+.saved-year-water { grid-column: 4; grid-row: 1; font-weight: 700; text-align: right; font-variant-numeric: tabular-nums; }
+.saved-year-reach { grid-column: 4; grid-row: 2; text-align: right; font-size: var(--fs-xs); font-weight: 700; color: var(--ok); }
+.saved-year-reach.sometimes { color: var(--warn); }
+.saved-year-reach.often { color: var(--danger); }
+.season-reach { margin-top: 8px; }
 .saved-year-total { font-weight: 800; text-align: right; padding-top: 2px; }
 .saved-years .tiny { margin: 2px 0 0; }
 .saved-source { display: flex; flex-direction: column; gap: 4px; }
 .saved-natural { display: flex; flex-direction: column; gap: 4px; }
 .saved-natural-line { display: flex; align-items: center; gap: 6px; font-size: var(--fs-sm); color: var(--text); }
 .saved-natural-line .icon { flex: none; color: var(--water); }
+.saved-natural-line b { font-weight: 800; white-space: nowrap; }
 .saved-natural .tiny { margin: 0; }
 .crop-seq { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
 .crop-seq li { display: inline-flex; align-items: center; gap: 4px; background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--r-md); padding: 2px 10px 2px 4px; font-size: var(--fs-sm); font-weight: 700; }
@@ -497,6 +505,17 @@ p { margin: 0; }
 .source-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .source-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
 .source-body p { font-size: var(--fs-sm); color: var(--muted); }
+
+/* Agronomist page */
+.agro-hotline .agro-call { align-self: flex-start; margin-top: 6px; }
+.agro-pick { display: flex; flex-direction: column; gap: 6px; }
+.agro-pick select { height: 48px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: var(--r-md); background: var(--surface); color: var(--text); font: inherit; font-size: var(--fs-md); }
+.agro-pick select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+.agro-card { display: flex; flex-direction: column; gap: 6px; padding: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+.agro-name { font-size: var(--fs-lg); }
+.agro-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.reach { font-size: var(--fs-sm); color: var(--muted); }
+.reach.short { color: var(--warn); font-weight: 600; }
 .status { display: inline-flex; align-items: center; gap: 5px; font-size: var(--fs-xs); font-weight: 800; padding: 2px 8px; border-radius: var(--r-full); }
 .status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 .status-live { background: var(--primary-soft); color: var(--primary); }

@@ -1,4 +1,6 @@
-# SuuPlan
+# ISEED
+
+ISEED (from *ice* and *seed*; formerly SuuPlan).
 
 PWA for farmers in Kyrgyzstan: mark a field on the map, answer 3 questions, choose a priority and get
 three 3-year crop rotation plans that take mountain snow, soil and climate into account.

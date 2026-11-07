@@ -1,0 +1,55 @@
+{
+ "_source": "ESA WorldCereal 2021 v100 (temporary crops, active irrigation); ESA WorldCover 2021 v200 (cropland)",
+ "basins": {
+  "saryjaz": {
+   "crops_ha": 482,
+   "irrigated_ha": 3,
+   "cover_ha": 12
+  },
+  "kyzylsuu_east": {
+   "crops_ha": 38,
+   "irrigated_ha": 4,
+   "cover_ha": 10
+  },
+  "alay": {
+   "crops_ha": 11023,
+   "irrigated_ha": 2532,
+   "cover_ha": 5027
+  },
+  "tekes": {
+   "crops_ha": 56,
+   "irrigated_ha": 0,
+   "cover_ha": 0
+  },
+  "chatkal_fergana": {
+   "crops_ha": 48563,
+   "irrigated_ha": 22483,
+   "cover_ha": 106099
+  },
+  "karadarya": {
+   "crops_ha": 200557,
+   "irrigated_ha": 95778,
+   "cover_ha": 288418
+  },
+  "naryn": {
+   "crops_ha": 80838,
+   "irrigated_ha": 13170,
+   "cover_ha": 139458
+  },
+  "chui": {
+   "crops_ha": 334495,
+   "irrigated_ha": 85170,
+   "cover_ha": 466876
+  },
+  "talas": {
+   "crops_ha": 91187,
+   "irrigated_ha": 15346,
+   "cover_ha": 133308
+  },
+  "issykkul": {
+   "crops_ha": 72039,
+   "irrigated_ha": 3020,
+   "cover_ha": 178627
+  }
+ }
+}

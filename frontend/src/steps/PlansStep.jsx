@@ -5,7 +5,7 @@ import { useT, fmtNum, fmtDate } from "../i18n";
 import Step from "../components/Step";
 import Icon from "../components/Icons";
 import { fetchPlans, savePlan } from "../lib/actions";
-import { letter, reasonText } from "../lib/share";
+import { letter, reasonText, yearRows } from "../lib/share";
 import CropIcon from "../components/CropIcon";
 
 const SWIPE_PX = 100;
@@ -90,7 +90,7 @@ export default function PlansStep() {
   const snow = ctx.snow;
   const done = planView === "stack" ? index >= page.length : true;
   const badges = bestBadges(page);
-  const cardProps = { source: plans.request.source, baseline: plans.baseline };
+  const cardProps = { source: plans.request.source, baseline: plans.baseline, delivery: ctx.delivery };
   const plot = plots.find((p) => p.id === plotId);
   const isDemo = snow?.demo || ctx.climate_source !== "NASA POWER";
   const srcText = (s) => (s === "farmer" ? t("plans.src.farmer") : s === "fallback" ? t("plans.src.estimate") : s);
@@ -190,7 +190,7 @@ export default function PlansStep() {
   );
 }
 
-function WaterLine({ plan, source, baseline }) {
+function WaterLine({ plan, source, baseline, delivery }) {
   const t = useT();
   const level = waterLevel(plan.scores.water);
   let vs = null;
@@ -205,11 +205,37 @@ function WaterLine({ plan, source, baseline }) {
       <span className={`water-tag ${level}`}><Icon name="drop" size={15} /> {t(`plans.waterLevel.${level}`)}</span>
       <p className="water">{source === "none" ? t("plans.rainfed", { mm: plan.deficit_mm }) : t("plans.water", { m3: fmtNum(t.lang, plan.water_m3_year) })}</p>
       {vs && <p className="vs muted small">{vs}</p>}
+      {plan.supply && delivery && (
+        <p className={`reach ${plan.supply.level !== "enough" ? "short" : ""}`}>
+          {t("plans.reach", { m3: fmtNum(t.lang, delivery.useful_m3), pct: Math.min(999, Math.round(plan.supply.ratio * 100)) })}
+          {" "}<span className="pill demo">{t("app.demo")}</span>
+        </p>
+      )}
     </div>
   );
 }
 
-function PlanCard({ plan, label, depth = 0, top, list, source, baseline, badges = [], onDecide, saved }) {
+// Each season (year) of the plan: the crop's water need and how much of it reaches the field.
+function SeasonReach({ plan, source }) {
+  const t = useT();
+  const years = yearRows(t.lang, { plan, inputs: { source } });
+  if (!years || !years.rows.some((r) => r.reach)) return null;
+  return (
+    <div className="saved-years season-reach">
+      <span className="muted tiny">{t("plans.byYear")}</span>
+      {years.rows.map((r) => (
+        <div key={r.year} className="saved-year">
+          <span className="muted">{r.year}</span>
+          <span className="saved-year-crop">{t(`crop.${r.crop}`)}</span>
+          <span className="saved-year-water">{r.water}</span>
+          <span className={`saved-year-reach ${r.reachLevel}`}>{r.reach}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PlanCard({ plan, label, depth = 0, top, list, source, baseline, delivery, badges = [], onDecide, saved }) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const [dx, setDx] = useState(0);
@@ -267,7 +293,8 @@ function PlanCard({ plan, label, depth = 0, top, list, source, baseline, badges 
           </li>
         ))}
       </ol>
-      <WaterLine plan={plan} source={source} baseline={baseline} />
+      <WaterLine plan={plan} source={source} baseline={baseline} delivery={delivery} />
+      <SeasonReach plan={plan} source={source} />
       <p className="why">{reasonText(t.lang, plan.reasons[0])}</p>
       <button className="link" aria-expanded={open} onClick={() => setOpen(!open)}>{open ? t("plans.hideDetails") : t("plans.details")}</button>
       {open && (

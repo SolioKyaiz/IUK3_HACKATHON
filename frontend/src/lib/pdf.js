@@ -1,6 +1,6 @@
 // Loaded only when the user taps "PDF" (jsPDF and the font are not in the main bundle).
 import { translate, fmtNum, fmtDate } from "../i18n";
-import { snowText, reasonText, naturalLines, sourceLines, yearRows } from "./share";
+import { snowText, reasonText, naturalLines, sourceLines, deliveryLines, yearRows } from "./share";
 
 async function fontBase64(url) {
   const buf = await (await fetch(url)).arrayBuffer();
@@ -28,7 +28,7 @@ export async function makePdf(lang, saved) {
   const { plan, inputs } = saved;
   let y = 22;
   doc.setFont("Noto", "bold"); doc.setFontSize(20);
-  doc.text(`SuuPlan — ${t("pdf.title")}`, 18, y);
+  doc.text(`ISEED — ${t("pdf.title")}`, 18, y);
   y += 9;
   doc.setFont("Noto", "normal"); doc.setFontSize(11); doc.setTextColor(90);
   doc.text(`${inputs.planLabel} · ${t("share.date", { date: fmtDate(lang, saved.created_at) })}`, 18, y);
@@ -50,9 +50,10 @@ export async function makePdf(lang, saved) {
       doc.setFont("Noto", "normal"); doc.setFontSize(11);
       doc.text(years.rows[i].sow, 110, y);
       doc.text(years.rows[i].water, 192, y, { align: "right" });
+      if (years.rows[i].reach) { doc.setFontSize(9); doc.text(years.rows[i].reach, 192, y + 4.5, { align: "right" }); }
       doc.setFont("Noto", "bold"); doc.setFontSize(14);
     }
-    y += 9;
+    y += years?.rows[i].reach ? 11 : 9;
   });
   doc.setFont("Noto", "normal"); doc.setFontSize(12);
   if (years?.total) { doc.setFont("Noto", "bold"); doc.text(years.total, 192, y - 2, { align: "right" }); doc.setFont("Noto", "normal"); y += 5; }
@@ -65,9 +66,16 @@ export async function makePdf(lang, saved) {
   y += 4;
   const water = inputs.source === "none" ? t("plans.rainfed", { mm: plan.deficit_mm }) : t("plans.water", { m3: fmtNum(lang, plan.water_m3_year) });
   doc.text(doc.splitTextToSize(water, 170), 18, y); y += 8;
-  for (const l of sourceLines(lang, saved)) {
+  const delivery = deliveryLines(lang, saved);
+  for (const l of [...sourceLines(lang, saved), ...delivery]) {
     const lines = doc.splitTextToSize(l.text + (l.demo ? ` (${t("app.demo")})` : ""), 170);
     doc.text(lines, 18, y); y += 6 * lines.length;
+  }
+  if (delivery.length) {
+    doc.setFontSize(9); doc.setTextColor(90);
+    const note = doc.splitTextToSize(t("saved.reachNote"), 170);
+    doc.text(note, 18, y); y += 4.5 * note.length + 3.5;
+    doc.setFontSize(12); doc.setTextColor(0);
   }
   const natural = naturalLines(lang, saved);
   for (const l of natural) {
@@ -98,6 +106,7 @@ export async function makePdf(lang, saved) {
   }
 
   y = Math.max(y + 8, 230);
+  if (y > 262) { doc.addPage(); y = 20; } // long plans (reasons, water lines) push the footer off page 1
   doc.setDrawColor(200); doc.line(18, y, 192, y); y += 8;
   doc.setFont("Noto", "bold"); doc.setFontSize(12);
   doc.text(t("app.hint"), 18, y); y += 7;
@@ -105,7 +114,7 @@ export async function makePdf(lang, saved) {
   if (inputs.demo) { doc.text(t("app.demoNote"), 18, y); y += 5; }
   doc.text(doc.splitTextToSize(t("pdf.sources"), 174), 18, y);
 
-  const name = `SuuPlan-${(inputs.plotName || "plan").replace(/[^\p{L}\p{N}]+/gu, "_")}.pdf`;
+  const name = `ISEED-${(inputs.plotName || "plan").replace(/[^\p{L}\p{N}]+/gu, "_")}.pdf`;
   const blob = doc.output("blob");
   const file = new File([blob], name, { type: "application/pdf" });
   if (navigator.canShare?.({ files: [file] }) && window.matchMedia("(pointer: coarse)").matches) {

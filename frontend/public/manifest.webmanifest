@@ -1,6 +1,6 @@
 {
-  "name": "SuuPlan",
-  "short_name": "SuuPlan",
+  "name": "ISEED",
+  "short_name": "ISEED",
   "description": "Crop rotation plans with mountain snow, soil and climate",
   "start_url": "/plot",
   "scope": "/",

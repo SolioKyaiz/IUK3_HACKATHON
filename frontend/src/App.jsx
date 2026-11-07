@@ -17,6 +17,8 @@ import PriorityStep from "./steps/PriorityStep";
 import PlansStep from "./steps/PlansStep";
 import SavedStep from "./steps/SavedStep";
 import DataPage from "./steps/DataPage";
+import AgronomistPage from "./steps/AgronomistPage";
+import { MENU } from "./lib/menu";
 import { refreshPlots, refreshSaved } from "./lib/actions";
 
 function Steps() {
@@ -28,6 +30,7 @@ function Steps() {
       <Route path="/priority" element={plotId ? <PriorityStep /> : <Navigate to="/plot" replace />} />
       <Route path="/plans" element={plotId ? <PlansStep /> : <Navigate to="/plot" replace />} />
       <Route path="/saved" element={<SavedStep />} />
+      <Route path="/agronomist" element={<AgronomistPage />} />
       <Route path="/data" element={<DataPage />} />
       <Route path="*" element={<Navigate to="/plot" replace />} />
     </Routes>
@@ -36,16 +39,15 @@ function Steps() {
 
 function SideMenu() {
   const t = useT();
-  const items = [["/plot", "field", "menu.plots"], ["/saved", "plans", "menu.plans"], ["/data", "data", "menu.data"]];
   const loc = useLocation();
   const inFlow = ["/plot", "/field", "/priority", "/plans"].includes(loc.pathname);
   return (
-    <nav className="side-menu" aria-label="SuuPlan">
-      <div className="logo" aria-label="SuuPlan">
+    <nav className="side-menu" aria-label="ISEED">
+      <div className="logo" aria-label="ISEED">
         <span className="logo-mark"><Icon name="drop" size={20} /></span>
-        <span className="logo-word">Suu<b>Plan</b></span>
+        <span className="logo-word">I<b>SEED</b></span>
       </div>
-      {items.map(([to, icon, key]) => (
+      {MENU.map(([to, icon, key]) => (
         <NavLink key={to} to={to} className={({ isActive }) => (isActive || (to === "/plot" && inFlow) ? "active" : "")}>
           <Icon name={icon} size={22} />
           <span>{t(key)}</span>
@@ -63,9 +65,7 @@ function TabletMenu() {
       <button className="icon-btn" aria-expanded={open} aria-label={t("menu.open")} onClick={() => setOpen(!open)}><Icon name="menu" /></button>
       {open && (
         <div className="menu-pop" onClick={() => setOpen(false)}>
-          <NavLink to="/plot">{t("menu.plots")}</NavLink>
-          <NavLink to="/saved">{t("menu.plans")}</NavLink>
-          <NavLink to="/data">{t("menu.data")}</NavLink>
+          {MENU.map(([to, , key]) => <NavLink key={to} to={to}>{t(key)}</NavLink>)}
         </div>
       )}
     </div>
