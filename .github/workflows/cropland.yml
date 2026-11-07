@@ -1,0 +1,26 @@
+name: Farmland per basin
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [cropland-data]
+
+jobs:
+  cropland:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt earthengine-api
+      - run: python -m scripts.cropland_job
+        env:
+          EE_SERVICE_ACCOUNT_JSON: ${{ secrets.EE_SERVICE_ACCOUNT_JSON }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: basin_cropland
+          path: backend/suuplan/data/basin_cropland.json
